@@ -1,0 +1,1698 @@
+<title>Budget & Planner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,800&family=Open+Sans:wght@400;600;700&family=Bitter:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1C1917; --surface:#262220; --surface-raised:#322C28; --surface-sunk:#171412;
+  --border:#3D3630; --border-soft:#2C2723;
+  --text:#F3EEE7; --text-soft:#A79E93; --text-faint:#7A7168;
+  --accent:#E38267; --accent-ink:#2B140F; --accent-soft:#3B241C;
+  --positive:#CFE4C8; --positive-ink:#1C2A1A;
+  --danger:#E38267;
+  --tag-payday:#D9CBE6; --tag-payday-ink:#241C2B;
+  --tag-rent:#F0D6BF; --tag-rent-ink:#2B2117;
+  --tag-phone:#BDD0E6; --tag-phone-ink:#19222B;
+  --tag-net:#E3CBDA; --tag-net-ink:#2B1D26;
+  --shadow: 0 20px 60px -20px rgba(0,0,0,.6);
+  --m1:#7CA8CE; --m2:#74BBA6; --m3:#8FC182; --m4:#D2B36F; --m5:#DCAC5F; --m6:#E0A46F;
+  --m7:#DD927A; --m8:#D48A9A; --m9:#C084AC; --m10:#AC89C8; --m11:#9590CD; --m12:#7E96CD;
+  --m-ink:#241F1B;
+  --serif:"DM Sans",sans-serif;
+}
+body[data-app-theme="silver"]{
+  --bg:#E4E4E6; --surface:#F6F6F7; --surface-raised:#ECECEE; --surface-sunk:#D7D7DA;
+  --border:#C6C6CA; --border-soft:#D9D9DC;
+  --text:#232220; --text-soft:#63615D; --text-faint:#8B8884;
+  --accent:#C85B41; --accent-ink:#FBF3EF; --accent-soft:#F0DCD4;
+  --positive:#4C7C57; --positive-ink:#FFFFFF;
+  --danger:#C85B41;
+  --shadow: 0 16px 40px -18px rgba(35,34,32,.28);
+}
+body[data-app-theme="paper"]{
+  --bg:#EEEBDF; --surface:#F4F1E5; --surface-raised:#E7E2CD; --surface-sunk:#E2DCC5;
+  --border:#D8D1B6; --border-soft:#E2DCC6;
+  --text:#37332A; --text-soft:#83795F; --text-faint:#A79C7E;
+  --accent:#6E6B42; --accent-ink:#F8F6EA; --accent-soft:#DEDBBE;
+  --positive:#C9C89E; --positive-ink:#333018;
+  --danger:#93583C;
+  --shadow: 0 16px 36px -18px rgba(55,51,42,.25);
+  --serif:"Bitter",Georgia,serif;
+}
+/* Paper theme: one uniform dark-olive identity for nav + month rail instead
+   of a color per item — calmer, more "one ink" than the other two themes. */
+body[data-app-theme="paper"] .rail-item{background:color-mix(in srgb, var(--accent) 20%, var(--surface));}
+body[data-app-theme="paper"] .rail-item.on{background:var(--accent);color:var(--accent-ink);box-shadow:none;}
+body[data-app-theme="paper"] .mtab{background:color-mix(in srgb, var(--accent) 34%, var(--surface-sunk));}
+body[data-app-theme="paper"] .mtab.on{background:var(--accent);box-shadow:none;}
+body[data-app-theme="paper"] .mtab.on span{color:var(--accent-ink);}
+*{box-sizing:border-box;}
+.js-fallback{position:fixed;inset:0;z-index:9999;background:#1C1917;color:#F3EEE7;display:flex;
+  align-items:center;justify-content:center;padding:28px;font-family:-apple-system,"Open Sans",Helvetica,Arial,sans-serif;}
+.js-fallback-card{max-width:440px;}
+.js-fallback h1{font-family:"DM Sans",-apple-system,sans-serif;font-size:23px;font-weight:800;margin:0 0 12px;}
+.js-fallback p{font-size:15.5px;line-height:1.65;color:#D8D2C9;margin:0 0 12px;}
+.js-fallback b{color:#E38267;}
+body.js-ran .js-fallback{display:none;}
+html{overflow-x:hidden;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Helvetica,Arial,sans-serif;
+  overflow-x:hidden;}
+.stage{width:100%;}
+.frame-outer{width:100%;}
+.canvas{width:100%;min-height:100vh;background:var(--bg);display:flex;font-family:"Open Sans",sans-serif;}
+
+/* ---- mobile top bar + drawer (hidden above 980px) ---- */
+.mobilebar{display:none;}
+.drawer-backdrop{display:none;}
+@media (max-width:980px){
+  .mobilebar{display:flex;align-items:center;gap:14px;flex:none;padding:16px 18px;
+    background:var(--surface-sunk);border-bottom:1px solid var(--border-soft);
+    position:sticky;top:0;z-index:20;}
+  .mobilebar button{width:42px;height:42px;flex:none;border-radius:10px;border:1px solid var(--border);
+    background:var(--surface-raised);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .mobilebar button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .mobilebar .mb-word{font-family:"DM Sans",sans-serif;font-size:15px;font-weight:800;letter-spacing:.1em;
+    color:var(--text-soft);text-transform:uppercase;}
+  .mobilebar .mb-word b{color:var(--accent);}
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(10,8,7,.55);z-index:29;}
+  .drawer-backdrop.on{display:block;}
+}
+
+/* ---- sidebar (now the RIGHT rail — swapped with the month rail so the layout
+   doesn't read as a copy of the reference listing) ---- */
+.rail{order:3;width:236px;flex:none;background:var(--surface-sunk);border-left:1px solid var(--border-soft);
+  display:flex;flex-direction:column;padding:26px 14px;gap:26px;}
+.rail-word{font-family:"DM Sans",sans-serif;font-size:17px;font-weight:800;letter-spacing:.14em;
+  color:var(--text-soft);padding:0 8px;text-transform:uppercase;line-height:1.35;}
+.rail-word b{color:var(--accent);}
+.rail-nav{display:flex;flex-direction:column;gap:5px;}
+.rail-item{display:flex;align-items:center;gap:13px;padding:13px 12px;border-radius:11px;cursor:pointer;
+  font-family:"DM Sans",sans-serif;font-size:21px;font-weight:600;color:var(--m-ink);
+  background:color-mix(in srgb, var(--nav-color, var(--surface-raised)) 55%, var(--surface-sunk));
+  border:1px solid transparent;}
+.rail-item svg{width:24px;height:24px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.rail-item.on{background:var(--nav-color,var(--accent));box-shadow:inset 0 0 0 2px var(--m-ink);font-weight:800;}
+.theme-toggle{display:flex;gap:8px;padding:0 2px;}
+.theme-toggle button{flex:1;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:700;padding:10px 0;
+  border-radius:9px;border:1px solid var(--border);background:var(--surface-raised);color:var(--text-soft);cursor:pointer;}
+.theme-toggle button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+.rail-foot{margin-top:auto;padding:12px 10px 2px;font-size:14.5px;color:var(--text-faint);border-top:1px solid var(--border-soft);line-height:1.5;}
+
+/* ---- left month rail ---- */
+.monthrail{order:1;width:74px;flex:none;background:var(--surface-sunk);border-right:1px solid var(--border-soft);
+  display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:6px;}
+.mhome{width:44px;height:40px;flex:none;border-radius:10px;background:var(--surface-raised);
+  display:flex;align-items:center;justify-content:center;margin-bottom:8px;cursor:pointer;}
+.mhome svg{width:19px;height:19px;stroke:var(--text-soft);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.mtab{width:46px;flex:1;min-height:0;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;background:color-mix(in srgb, var(--tab-color, var(--m8)) 62%, var(--surface-sunk));}
+.mtab span{writing-mode:vertical-rl;font-family:"DM Sans",sans-serif;font-size:16.5px;font-weight:800;
+  letter-spacing:.13em;color:var(--m-ink);}
+.mtab.on{background:var(--tab-color,var(--m8));box-shadow:inset 0 0 0 2px var(--m-ink);}
+.mtab.on span{color:var(--m-ink);}
+
+/* ---- main ---- */
+.main{order:2;flex:1;min-width:0;display:flex;flex-direction:column;padding:34px 40px 30px;gap:22px;overflow:hidden;}
+.topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex:none;}
+.topbar h2{margin:0;font-family:var(--serif);font-size:35px;font-weight:700;letter-spacing:-.01em;}
+.topbar .sub{margin-top:6px;font-size:17px;color:var(--text-soft);}
+.topactions{display:flex;gap:10px;flex:none;}
+.btn{font-family:"DM Sans",sans-serif;font-size:16.5px;font-weight:700;border-radius:10px;padding:12px 18px;
+  border:1px solid var(--border);background:var(--surface-raised);color:var(--text);cursor:pointer;white-space:nowrap;}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+.btn:focus-visible, .chip:focus-visible, .rail-item:focus-visible, .mtab:focus-visible, .navbtn:focus-visible,
+.chk-circ:focus-visible, .addmini:focus-visible, .rowdel:focus-visible, input:focus-visible, select:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;}
+.navbtn{width:42px;height:42px;border-radius:10px;border:1px solid var(--border);background:var(--surface-raised);
+  display:flex;align-items:center;justify-content:center;color:var(--text-soft);cursor:pointer;}
+.navbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+.screen{display:none;flex:1;min-height:0;flex-direction:column;gap:20px;}
+.screen.on{display:flex;}
+
+/* ---- card ---- */
+.card{background:var(--surface);border:1px solid var(--border-soft);border-radius:16px;padding:22px 24px;}
+.card-label{font-family:"DM Sans",sans-serif;font-size:16px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text-faint);}
+
+/* ---- right now ---- */
+.rightnow{flex:none;display:flex;align-items:center;gap:20px;background:linear-gradient(155deg,var(--surface-raised) 0%,var(--surface) 100%);
+  border:1px solid var(--accent-soft);}
+.rn-badge{width:38px;height:38px;flex:none;border-radius:50%;background:var(--accent);color:var(--accent-ink);
+  display:flex;align-items:center;justify-content:center;font-family:"DM Sans",sans-serif;font-weight:800;font-size:17px;}
+.rn-body{flex:1;min-width:0;}
+.rn-title{font-family:var(--serif);font-size:22px;font-weight:700;margin-top:4px;}
+.rn-time{flex:none;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:700;color:var(--text-soft);
+  background:var(--surface-raised);border:1px solid var(--border);border-radius:100px;padding:6px 12px;}
+.rn-clear{background:var(--surface);}
+
+/* ---- brain dump ---- */
+.braindump{width:100%;min-height:110px;margin-top:10px;resize:vertical;font-family:"Open Sans",sans-serif;
+  font-size:16px;line-height:1.6;padding:14px 16px;border-radius:12px;border:1px solid var(--border);
+  background:var(--surface-raised);color:var(--text);}
+.braindump::placeholder{color:var(--text-faint);font-style:italic;}
+
+/* ---- run to payday ---- */
+.rp-days{font-family:var(--serif);font-size:28px;font-weight:700;margin-top:6px;}
+.rp-stats{display:flex;flex-direction:column;gap:10px;}
+.rp-stats div{display:flex;justify-content:space-between;align-items:baseline;font-size:14.5px;color:var(--text-soft);}
+.rp-stats b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;}
+
+/* ---- month so far ---- */
+.msf-top{display:flex;gap:26px;margin-top:8px;flex-wrap:wrap;}
+.msf-num{display:flex;flex-direction:column;gap:4px;}
+.msf-num span{font-size:13px;color:var(--text-faint);}
+.msf-num b{font-family:"DM Sans",sans-serif;font-size:25px;font-weight:800;font-variant-numeric:tabular-nums;}
+.msf-num.pos b{color:var(--positive);}
+.msf-bar{display:flex;height:14px;border-radius:100px;overflow:hidden;margin:16px 0 12px;background:var(--surface-sunk);}
+.msf-bar i{display:block;height:100%;}
+.msf-legend{display:flex;flex-wrap:wrap;gap:10px 20px;}
+.msf-legend .li{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--text-soft);}
+.msf-legend .li i{width:9px;height:9px;border-radius:3px;flex:none;}
+.msf-legend .li b{color:var(--text);font-weight:700;}
+
+/* ---- day strip ---- */
+.daystrip{display:flex;align-items:flex-end;gap:3px;height:64px;margin-top:12px;overflow-x:auto;padding-bottom:2px;}
+.ds-day{flex:1 0 8px;min-width:8px;height:100%;display:flex;align-items:flex-end;position:relative;}
+.ds-day i{display:block;width:100%;border-radius:3px 3px 0 0;background:var(--surface-sunk);}
+.ds-day.has i{background:var(--accent);}
+.ds-day.today{outline:2px solid var(--accent);outline-offset:1px;border-radius:3px;}
+
+/* ---- today ---- */
+.today-grid{flex:none;display:grid;grid-template-columns:1.15fr 1fr;gap:20px;align-items:start;}
+.today-left{display:flex;flex-direction:column;gap:20px;min-height:0;}
+.today-right{display:flex;flex-direction:column;gap:20px;min-height:0;}
+.hero{background:linear-gradient(155deg,var(--surface) 0%,var(--surface-raised) 100%);flex:none;}
+.hero-amt{display:flex;align-items:baseline;gap:6px;margin:10px 0 12px;font-family:"DM Sans",sans-serif;}
+.hero-amt .cur{font-size:42px;font-weight:700;color:var(--accent);}
+.hero-amt .num{font-family:var(--serif);font-size:86px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+.hero-sub{font-size:20px;color:var(--text-soft);line-height:1.65;font-variant-numeric:tabular-nums;}
+.hero-sub b{color:var(--text);font-weight:700;}
+.checklist{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;}
+.chk-row{display:flex;align-items:center;gap:13px;padding:13px 2px;border-top:1px solid var(--border-soft);}
+.chk-row:first-of-type{border-top:none;margin-top:6px;}
+.chk-circ{width:22px;height:22px;flex:none;border-radius:50%;border:1.6px solid var(--border);display:flex;
+  align-items:center;justify-content:center;background:none;cursor:pointer;padding:0;}
+.chk-circ.locked{cursor:default;}
+.chk-circ.done{background:var(--positive);border-color:var(--positive);}
+.chk-circ.done svg{width:12px;height:12px;stroke:var(--positive-ink);fill:none;stroke-width:2.6;}
+.chk-row span{font-size:17.5px;font-weight:600;font-family:"DM Sans",sans-serif;}
+.chk-row.done span{color:var(--text-soft);text-decoration:line-through;text-decoration-color:var(--border);}
+.chk-auto{margin-left:auto;font-family:"Open Sans";font-size:13px;color:var(--text-faint);font-style:italic;}
+.status-pill{margin-left:auto;flex:none;font-family:"DM Sans",sans-serif;font-size:12px;font-weight:700;
+  padding:4px 11px;border-radius:100px;background:var(--surface-raised);color:var(--text-soft);}
+.status-pill.on{background:var(--positive);color:var(--positive-ink);}
+.tl-row{display:grid;grid-template-columns:56px 1fr auto auto;align-items:center;gap:14px;padding:12px 2px;border-top:1px solid var(--border-soft);}
+.tl-row:first-of-type{border-top:none;}
+.tl-date{font-family:"DM Sans",sans-serif;font-size:12px;color:var(--text-faint);text-align:center;}
+.tl-date b{display:block;font-size:18px;font-weight:800;color:var(--text);}
+.tl-name{font-family:"DM Sans",sans-serif;font-weight:700;font-size:15.5px;}
+.tl-status{display:block;font-size:12.5px;font-weight:400;color:var(--text-faint);margin-top:2px;}
+.tl-amt{text-align:right;font-weight:800;font-variant-numeric:tabular-nums;font-size:16px;white-space:nowrap;}
+.tl-amt.pos{color:var(--positive);}
+.tl-run{text-align:right;font-size:12px;color:var(--text-faint);white-space:nowrap;}
+.tl-run b{display:block;font-size:14px;font-variant-numeric:tabular-nums;color:var(--text-soft);}
+@media (max-width:640px){
+  .tl-row{grid-template-columns:1fr auto;row-gap:4px;}
+  .tl-date{display:none;}
+  .tl-run{display:none;}
+}
+
+.chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px;}
+.chip{font-family:"DM Sans",sans-serif;font-size:16px;font-weight:700;padding:10px 16px;border-radius:100px;
+  border:1px solid var(--border);background:var(--surface-raised);color:var(--text);cursor:pointer;}
+.chip::before{content:"+ ";color:var(--accent);}
+.chip.dashed{border-style:dashed;color:var(--text-soft);}
+
+.logrow{display:flex;align-items:center;gap:14px;padding:12px 2px;border-top:1px solid var(--border-soft);}
+.logrow:first-of-type{border-top:none;}
+.logdot{width:9px;height:9px;border-radius:50%;background:var(--accent);flex:none;}
+.logrow .nm{flex:1;font-size:17px;font-weight:600;font-family:"DM Sans",sans-serif;}
+.logrow .tm{font-size:14.5px;color:var(--text-faint);}
+.logrow .amt{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;font-family:"DM Sans",sans-serif;}
+.logtotal{display:flex;justify-content:space-between;align-items:baseline;margin-top:auto;padding-top:14px;
+  border-top:1px solid var(--border);font-family:"DM Sans",sans-serif;}
+.logtotal .lbl{font-size:14.5px;color:var(--text-soft);}
+.logtotal .val{font-size:23px;font-weight:800;font-variant-numeric:tabular-nums;}
+.logcard{flex:1;min-height:0;display:flex;flex-direction:column;}
+.empty{color:var(--text-faint);font-size:16px;padding:10px 2px;font-style:italic;}
+.rowdel{width:24px;height:24px;flex:none;border-radius:7px;border:none;background:transparent;color:var(--text-faint);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.rowdel:hover{background:var(--surface-raised);color:var(--accent);}
+.rowdel svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+
+/* ---- month ---- */
+.legend{display:flex;gap:18px;align-items:center;flex:none;}
+.legend span{display:flex;align-items:center;gap:7px;font-size:14.5px;color:var(--text-soft);font-family:"DM Sans",sans-serif;font-weight:600;}
+.legend i{width:9px;height:9px;border-radius:50%;}
+.cal{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border-soft);
+  border-radius:16px;overflow:hidden;}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);flex:none;border-bottom:1px solid var(--border-soft);}
+.cal-head div{padding:12px 0;text-align:center;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:700;
+  letter-spacing:.1em;color:var(--text-faint);}
+.cal-body{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);}
+.cal-cell{border-right:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);padding:9px;
+  display:flex;flex-direction:column;gap:4px;position:relative;min-width:0;overflow:hidden;cursor:pointer;}
+.cal-cell:hover{background:var(--surface-raised);}
+.cal-cell:nth-child(7n){border-right:none;}
+.cal-cell .d{font-family:"DM Sans",sans-serif;font-size:29px;font-weight:800;color:var(--text-soft);}
+.cal-cell.today{background:var(--accent-soft);}
+.cal-cell.today:hover{background:var(--accent-soft);filter:brightness(1.15);}
+.cal-cell.today .d{color:var(--accent);}
+.cal-cell.blank{background:var(--surface-sunk);cursor:default;}
+.tag{font-size:12.5px;font-weight:700;font-family:"DM Sans",sans-serif;padding:3px 7px;border-radius:6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cal-foot{flex:none;display:flex;justify-content:space-between;align-items:center;padding:13px 18px;
+  border-top:1px solid var(--border-soft);font-size:15.5px;color:var(--text-soft);font-family:"DM Sans",sans-serif;}
+.cal-foot b{color:var(--text);}
+
+/* ---- lists ---- */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;flex:none;}
+.stat{background:var(--surface);border:1px solid var(--border-soft);border-radius:16px;padding:20px 22px;}
+.stat .v{font-family:"DM Sans",sans-serif;font-size:38px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums;}
+.stat.pos .v{color:var(--positive);}
+.list{flex:1;min-height:0;display:flex;flex-direction:column;overflow:auto;}
+.list-row{display:grid;grid-template-columns:2.4fr 1fr 1fr auto;align-items:center;gap:14px;padding:13px 2px;
+  border-top:1px solid var(--border-soft);}
+.list-row:first-of-type{border-top:none;}
+.list-row .nm{font-family:"DM Sans",sans-serif;font-weight:700;font-size:17.5px;}
+.list-row .dt{font-size:15px;color:var(--text-faint);}
+.list-row .amt{text-align:right;font-family:"DM Sans",sans-serif;font-weight:800;font-size:18.5px;font-variant-numeric:tabular-nums;}
+.list-row .amt.pos{color:var(--positive);}
+
+.cardgrid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:min-content;gap:16px;
+  overflow:auto;align-content:start;}
+.gcard{background:var(--surface);border:1px solid var(--border-soft);border-radius:16px;padding:22px 24px;
+  display:flex;flex-direction:column;gap:13px;position:relative;}
+.gcard-note{font-size:15px;color:var(--text-faint);line-height:1.6;margin-top:2px;padding-top:10px;border-top:1px solid var(--border-soft);}
+.gcard-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-right:22px;}
+.gcard-head .nm{font-family:"DM Sans",sans-serif;font-weight:800;font-size:20.5px;}
+.gcard-head .by{font-size:14px;color:var(--text-faint);white-space:nowrap;}
+.bar{height:9px;border-radius:100px;background:var(--surface-sunk);overflow:hidden;}
+.bar i{display:block;height:100%;border-radius:100px;background:var(--positive);}
+.gcard.debt .bar i{background:var(--accent);}
+.gcard-nums{display:flex;justify-content:space-between;font-size:15px;color:var(--text-soft);font-variant-numeric:tabular-nums;gap:10px;}
+.gcard-nums b{color:var(--text);font-weight:700;}
+.order-tag{align-self:flex-start;font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:100px;
+  background:var(--surface-raised);color:var(--text-soft);font-family:"DM Sans",sans-serif;letter-spacing:.03em;}
+.addmini{align-self:flex-start;font-family:"DM Sans",sans-serif;font-size:14.5px;font-weight:700;color:var(--accent);
+  background:none;border:none;cursor:pointer;padding:2px 0;}
+.gcard-del{position:absolute;top:16px;right:16px;width:24px;height:24px;border-radius:7px;border:none;
+  background:transparent;color:var(--text-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.gcard-del:hover{background:var(--surface-raised);color:var(--accent);}
+.gcard-del svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+.sortrow{display:flex;gap:8px;flex:none;}
+.sortbtn{font-family:"DM Sans",sans-serif;font-size:14px;font-weight:700;padding:8px 14px;border-radius:100px;
+  border:1px solid var(--border);background:var(--surface-raised);color:var(--text-soft);cursor:pointer;}
+.sortbtn.on{background:var(--text);color:var(--bg);border-color:var(--text);}
+
+/* ---- settings ---- */
+.settings-grid{display:flex;flex-direction:column;gap:18px;max-width:560px;}
+.field{display:flex;flex-direction:column;gap:8px;}
+.field label{font-family:"DM Sans",sans-serif;font-size:14.5px;font-weight:700;color:var(--text-soft);}
+.field input,.field select{font-family:"Open Sans",sans-serif;font-size:17.5px;padding:12px 14px;border-radius:10px;
+  border:1px solid var(--border);background:var(--surface-raised);color:var(--text);}
+.danger-zone{margin-top:auto;padding-top:18px;border-top:1px solid var(--border-soft);}
+.btn.danger{background:transparent;border-color:var(--accent);color:var(--accent);}
+
+/* ---- notes ---- */
+.tool-btn{width:46px;height:46px;border-radius:10px;border:1px solid var(--border);background:var(--surface-raised);
+  color:var(--text-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.tool-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.tool-btn.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+.notes-canvas-wrap{flex:1;min-height:0;border-radius:16px;border:1px solid var(--border-soft);
+  background-color:var(--surface);
+  background-image:radial-gradient(var(--border) 1.6px, transparent 1.6px);
+  background-size:30px 30px;overflow:hidden;position:relative;}
+.notes-canvas-wrap canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;}
+
+/* ---- modal ---- */
+.modal-overlay{position:absolute;inset:0;background:rgba(10,8,7,.62);display:none;align-items:center;justify-content:center;z-index:50;}
+.modal-overlay.on{display:flex;}
+.modal{width:420px;max-width:88%;background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:26px 26px 22px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow);}
+.modal h3{margin:0;font-family:"DM Sans",sans-serif;font-size:21.5px;font-weight:800;}
+.modal .field input,.modal .field select{width:100%;}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:4px;}
+
+.rail-close{display:none;}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:980px){
+  .canvas{flex-direction:column;min-height:auto;}
+  .monthrail{display:none;}
+  .main{width:100%;}
+  .rail{position:fixed;top:0;right:0;bottom:0;height:100vh;width:min(300px,84vw);
+    transform:translateX(100%);transition:transform .25s ease;z-index:30;box-shadow:-12px 0 30px -12px rgba(0,0,0,.4);}
+  .rail.open{transform:translateX(0);}
+  .rail-word{display:flex;align-items:center;justify-content:space-between;}
+  .rail-close{display:flex;width:34px;height:34px;flex:none;border-radius:9px;border:1px solid var(--border);
+    background:var(--surface-raised);color:var(--text-soft);align-items:center;justify-content:center;cursor:pointer;}
+  .rail-close svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+  .theme-toggle button{font-size:12.5px;padding:9px 0;}
+}
+
+@media (min-width:641px) and (max-width:980px){
+  /* tablet: full nav drawer still available, but grids keep 2 columns — plenty of width */
+  .main{padding:26px 30px 24px;}
+}
+
+@media (max-width:640px){
+  .main{padding:18px 16px 90px;gap:16px;}
+  .topbar{flex-wrap:wrap;gap:12px;}
+  .topbar h2{font-size:26px;}
+  .topactions{flex-direction:column;width:100%;align-items:stretch;}
+  .topactions .btn{width:100%;}
+  .topactions .navbtn{align-self:flex-start;}
+
+  .screen.on{display:flex;}
+  .screen{flex:none;}
+  .today-grid{flex:none;grid-template-columns:1fr;grid-template-rows:none;gap:16px;}
+  .today-left,.today-right{min-height:0;}
+  .checklist{flex:none;justify-content:flex-start;}
+  .logcard{flex:none;}
+  .hero-amt .num{font-size:64px;}
+  .card{padding:18px 16px;}
+
+  .cardgrid{grid-template-columns:1fr;max-height:none;}
+  .stat-row{grid-template-columns:1fr;}
+
+  .cal-cell{padding:6px;gap:2px;}
+  .cal-cell .d{font-size:20px;}
+  .tag{font-size:10px;padding:2px 5px;}
+  .cal-head div{font-size:10.5px;}
+  .legend{flex-wrap:wrap;gap:10px;}
+
+  .list-row{display:flex;flex-wrap:wrap;align-items:center;column-gap:12px;row-gap:6px;}
+  .list-row .nm{flex:1 1 100%;}
+  .list-row .dt{flex:1;}
+  .list-row .amt{flex:none;}
+  .logrow{gap:10px;}
+
+  .modal{width:92%;padding:22px 18px 18px;}
+
+  .rightnow{flex-wrap:wrap;row-gap:12px;}
+  .rn-body{flex:1 1 100%;}
+  .rn-time{flex:1;text-align:center;}
+  #rnDone{flex:2;}
+  .msf-top{gap:16px;}
+}
+</style>
+
+<div class="stage">
+  <div id="jsFallback" class="js-fallback">
+    <div class="js-fallback-card">
+      <h1>One more tap needed</h1>
+      <p>This planner is an interactive app, not a plain document — it needs to open in a full browser tab to work.</p>
+      <p><b>On iPhone:</b> tap the Share icon → <b>Save to Files</b> → open the <b>Files</b> app → tap this file again from there.</p>
+      <p><b>On Android:</b> tap the <b>⋮</b> menu in the corner → <b>Open in Chrome</b>.</p>
+      <p>Once it's open in Safari or Chrome properly, this message goes away and the planner loads normally.</p>
+    </div>
+  </div>
+  <div class="frame-outer" id="frameOuter">
+    <div class="canvas" id="canvas">
+
+      <div class="mobilebar">
+        <button id="drawerToggle" aria-label="Open menu"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+        <div class="mb-word">Budget <b>&amp;</b> Planner</div>
+      </div>
+      <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+      <nav class="rail" id="railNavPanel">
+        <div class="rail-word">Budget <b>&amp;</b> Planner
+          <button class="rail-close" id="drawerClose" aria-label="Close menu"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+        </div>
+        <div class="theme-toggle">
+          <button class="on" data-theme-btn="dark">Dark</button>
+          <button data-theme-btn="silver">Silver</button>
+          <button data-theme-btn="paper">Paper</button>
+        </div>
+        <div class="rail-nav" id="railNav">
+          <div class="rail-item on" data-screen="today" style="--nav-color:var(--m1)">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Today</div>
+          <div class="rail-item" data-screen="month" style="--nav-color:var(--m2)">
+            <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>The month</div>
+          <div class="rail-item" data-screen="bills" style="--nav-color:var(--m3)">
+            <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.5 10h17M8 14h4"/></svg>Bills</div>
+          <div class="rail-item" data-screen="moneyin" style="--nav-color:var(--m4)">
+            <svg viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></svg>Money in</div>
+          <div class="rail-item" data-screen="goals" style="--nav-color:var(--m5)">
+            <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.9-7.5-10.8C4.5 6.7 7 5 9.3 5c1.2 0 2.3.6 2.7 1.6C12.4 5.6 13.5 5 14.7 5 17 5 19.5 6.7 19.5 10.2 19.5 16.1 12 21 12 21z"/></svg>Goals</div>
+          <div class="rail-item" data-screen="debt" style="--nav-color:var(--m6)">
+            <svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>Debt</div>
+          <div class="rail-item" data-screen="envelopes" style="--nav-color:var(--m7)">
+            <svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11h16M9 3v6"/></svg>Envelopes</div>
+          <div class="rail-item" data-screen="milestones" style="--nav-color:var(--m9)">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>Milestones</div>
+          <div class="rail-item" data-screen="notes" style="--nav-color:var(--m10)">
+            <svg viewBox="0 0 24 24"><path d="M4 19.8V16l11-11 3.8 3.8-11 11H4z"/><path d="M13.5 6.5l3.8 3.8"/></svg>Notes</div>
+          <div class="rail-item" data-screen="settings" style="--nav-color:var(--m11)">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3H9.8l-.4 2.5a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.5h4.4l.4-2.5a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.6a7 7 0 0 0 .1-1.2z"/></svg>Settings</div>
+        </div>
+        <div class="rail-foot" id="railFoot">your data stays in this browser</div>
+      </nav>
+
+      <div class="main">
+
+        <!-- TODAY -->
+        <section class="screen on" id="scr-today">
+          <div class="topbar">
+            <div><h2 id="todayGreeting">Good afternoon</h2><div class="sub" id="todayDate"></div></div>
+            <div class="topactions">
+              <button class="btn" id="backToTodayFromDay" style="display:none;">Back to today</button>
+              <button class="btn" data-nav="settings">Set today's balance</button>
+              <button class="btn primary" id="btnLogSpend">Log a spend</button>
+            </div>
+          </div>
+          <div class="card rightnow" id="rightNowCard" style="display:none;">
+            <div class="rn-badge">1</div>
+            <div class="rn-body">
+              <div class="card-label">Right now · one thing only</div>
+              <div class="rn-title" id="rnTitle">—</div>
+            </div>
+            <div class="rn-time" id="rnTime"></div>
+            <button class="btn primary" id="rnDone">Done — next</button>
+          </div>
+          <div class="card rightnow rn-clear" id="rightNowClearCard" style="display:none;">
+            <div class="rn-body"><div class="card-label">Right now</div>
+              <div class="rn-title">All three done — the rest can wait.</div></div>
+          </div>
+
+          <div class="today-grid">
+            <div class="today-left" id="todayLeft">
+              <div class="card hero" id="heroCard">
+                <div class="card-label">Safe to spend today</div>
+                <div class="hero-amt"><span class="cur">$</span><span class="num" id="safeAmt">0.00</span></div>
+                <div class="hero-sub" id="heroSub"></div>
+              </div>
+              <div class="card checklist" id="checklistCard"></div>
+              <div class="card" id="dayNoteCard" style="display:none;">
+                <div class="card-label">You're looking at another day</div>
+                <div class="hero-sub" style="margin-top:10px;">"Safe to spend" and the three small things are a today-only ritual. This page just shows — and lets you add — whatever was spent on this day.</div>
+              </div>
+            </div>
+            <div class="today-right">
+              <div class="card">
+                <div class="card-label">Quick add</div>
+                <div class="chips" id="quickChips"></div>
+              </div>
+              <div class="card logcard">
+                <div class="card-label" id="logLabel">What you logged today</div>
+                <div class="list" id="logList" style="margin-top:8px;"></div>
+                <div class="logtotal"><span class="lbl" id="logTotalLbl">logged today</span><span class="val" id="logTotal">$0.00</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Brain dump</div>
+            <textarea id="brainDumpText" class="braindump" placeholder="Not money. Just yours. Anything you don't want to forget."></textarea>
+          </div>
+
+          <div id="todayExtras" style="display:flex;flex-direction:column;gap:20px;">
+            <div class="cardgrid" style="flex:none;min-height:auto;overflow:visible;grid-auto-rows:min-content;">
+              <div class="card">
+                <div class="card-label">Coming up</div>
+                <div class="list" id="comingUpList" style="margin-top:8px;"></div>
+              </div>
+              <div class="card">
+                <div class="card-label">Run to payday</div>
+                <div class="rp-days" id="rpDays"></div>
+                <div class="bar" style="margin:10px 0 14px;"><i id="rpBar" style="width:0%"></i></div>
+                <div class="rp-stats">
+                  <div><span>Left to last</span><b id="rpLeft"></b></div>
+                  <div><span>Each day from here</span><b id="rpPerDay"></b></div>
+                  <div><span>Logged so far this period</span><b id="rpLogged"></b></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-label">The month so far</div>
+              <div class="msf-top">
+                <div class="msf-num"><span>Came in</span><b id="msfIn"></b></div>
+                <div class="msf-num"><span>Went out</span><b id="msfOut"></b></div>
+                <div class="msf-num pos"><span>Kept</span><b id="msfKept"></b></div>
+              </div>
+              <div class="msf-bar" id="msfBar"></div>
+              <div class="msf-legend" id="msfLegend"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-label">Every day this month</div>
+              <div class="daystrip" id="dayStrip"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-label">Milestones</div>
+              <div class="list" id="autoMilestoneList" style="margin-top:8px;"></div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- MONTH -->
+        <section class="screen" id="scr-month">
+          <div class="topbar">
+            <div><h2 id="monthTitle"></h2><div class="sub" id="monthSub"></div></div>
+            <div class="topactions">
+              <div class="navbtn" id="prevMonth"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></div>
+              <div class="navbtn" id="nextMonth"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+              <button class="btn" id="backToToday">Back to today</button>
+            </div>
+          </div>
+          <div class="legend">
+            <span><i style="background:var(--tag-rent)"></i>still to pay</span>
+            <span><i style="background:var(--tag-phone)"></i>money in</span>
+            <span><i style="background:var(--positive)"></i>already paid</span>
+          </div>
+          <div class="cal">
+            <div class="cal-head"><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div><div>SUN</div></div>
+            <div class="cal-body" id="calBody"></div>
+            <div class="cal-foot"><span id="calGuide"></span><span id="calTodayNote"></span></div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">What's happening — <span id="tlMonthName"></span></div>
+            <div class="list" id="tlList" style="margin-top:8px;"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Recap — <span id="recapMonthName"></span></div>
+            <div class="msf-top" style="margin-top:10px;">
+              <div class="msf-num"><span>Came in</span><b id="recIn"></b></div>
+              <div class="msf-num"><span>Went out</span><b id="recOut"></b></div>
+              <div class="msf-num pos"><span>Kept</span><b id="recKept"></b></div>
+            </div>
+          </div>
+
+          <div class="cardgrid" style="flex:none;min-height:auto;overflow:visible;grid-auto-rows:min-content;">
+            <div class="card">
+              <div class="card-label">Where it went</div>
+              <div id="recapCatChart" style="margin-top:8px;"></div>
+            </div>
+            <div class="card">
+              <div class="card-label">Came in · went out · kept</div>
+              <div id="recapFlowChart" style="margin-top:8px;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- BILLS -->
+        <section class="screen" id="scr-bills">
+          <div class="topbar">
+            <div><h2>Bills</h2><div class="sub" id="billsSub">what's due, on repeat</div></div>
+            <div class="topactions">
+              <div class="navbtn" id="billsPrev"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></div>
+              <div class="navbtn" id="billsNext"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+              <button class="btn" id="billsBackToday" style="display:none;">Back to this month</button>
+              <button class="btn primary" id="addBill">Add a bill</button>
+            </div>
+          </div>
+          <div class="card" style="flex:1;min-height:0;display:flex;flex-direction:column;">
+            <div class="card-label">Paid status for <span id="billsMonthName"></span></div>
+            <div class="list" id="billsList" style="margin-top:8px;"></div>
+          </div>
+        </section>
+
+        <!-- MONEY IN -->
+        <section class="screen" id="scr-moneyin">
+          <div class="topbar">
+            <div><h2>Money in</h2><div class="sub" id="moneyinSub">everything that's landed this month</div></div>
+            <div class="topactions">
+              <div class="navbtn" id="moneyinPrev"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></div>
+              <div class="navbtn" id="moneyinNext"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+              <button class="btn" id="moneyinBackToday" style="display:none;">Back to this month</button>
+              <button class="btn primary" id="addIncome">Record money in</button>
+            </div>
+          </div>
+          <div class="stat-row" id="incomeStats"></div>
+          <div class="card" style="flex:1;min-height:0;display:flex;flex-direction:column;">
+            <div class="card-label">Newest first</div>
+            <div class="list" id="incomeList" style="margin-top:8px;"></div>
+          </div>
+        </section>
+
+        <!-- GOALS -->
+        <section class="screen" id="scr-goals">
+          <div class="topbar">
+            <div><h2>What you're saving for</h2><div class="sub" id="goalsSub"></div></div>
+            <div class="topactions"><button class="btn primary" id="addGoal">Add a goal</button></div>
+          </div>
+          <div class="card">
+            <div class="card-label">Put away so far</div>
+            <div class="rp-days" id="goalsPutAway"></div>
+            <div class="hero-sub" id="goalsPct" style="margin-top:2px;"></div>
+            <div class="bar" style="margin:14px 0 4px;"><i id="goalsOverallBar" style="width:0%;background:var(--positive)"></i></div>
+          </div>
+          <div class="msf-top" style="margin:0 0 4px;">
+            <div class="msf-num"><span>Still to find</span><b id="goalsStillToFind"></b></div>
+            <div class="msf-num"><span>Nearest date</span><b id="goalsNearestDate"></b></div>
+          </div>
+          <div class="cardgrid" id="goalsGrid"></div>
+        </section>
+
+        <!-- DEBT -->
+        <section class="screen" id="scr-debt">
+          <div class="topbar">
+            <div><h2>Paying it down</h2><div class="sub" id="debtSub"></div></div>
+            <div class="topactions"><button class="btn primary" id="addDebt">Add a debt</button></div>
+          </div>
+          <div class="sortrow">
+            <button class="sortbtn on" data-sort="rate">Highest rate first</button>
+            <button class="sortbtn" data-sort="balance">Smallest balance first</button>
+          </div>
+          <div class="cardgrid" id="debtGrid"></div>
+        </section>
+
+        <!-- ENVELOPES -->
+        <section class="screen" id="scr-envelopes">
+          <div class="topbar">
+            <div><h2>Envelopes</h2><div class="sub">little pots of money, set aside on purpose</div></div>
+            <div class="topactions"><button class="btn primary" id="addEnvelope">Add an envelope</button></div>
+          </div>
+          <div class="cardgrid" id="envGrid"></div>
+        </section>
+
+        <!-- MILESTONES -->
+        <section class="screen" id="scr-milestones">
+          <div class="topbar">
+            <div><h2>Milestones worth marking</h2><div class="sub">no due dates, no guilt if it takes longer</div></div>
+            <div class="topactions"><button class="btn primary" id="addMilestone">Add a milestone</button></div>
+          </div>
+          <div class="card" style="flex:1;min-height:0;display:flex;flex-direction:column;">
+            <div class="list" id="milestoneList"></div>
+          </div>
+        </section>
+
+        <!-- NOTES -->
+        <section class="screen" id="scr-notes">
+          <div class="topbar">
+            <div><h2>Notes</h2><div class="sub">write or draw with your mouse, finger, or stylus</div></div>
+            <div class="topactions">
+              <button class="tool-btn on" id="toolPen" title="Pen"><svg viewBox="0 0 24 24"><path d="M4 19.8V16l11-11 3.8 3.8-11 11H4z"/><path d="M13.5 6.5l3.8 3.8"/></svg></button>
+              <button class="tool-btn" id="toolEraser" title="Eraser"><svg viewBox="0 0 24 24"><path d="M18.5 12.5L9 21H4.5l-1-1L14 8.5z"/><path d="M14 8.5l4.5-4.5 3 3-4.5 4.5"/><path d="M4.5 21h9"/></svg></button>
+              <button class="btn" id="toolClear">Clear page</button>
+            </div>
+          </div>
+          <div class="notes-canvas-wrap" id="notesWrap">
+            <canvas id="notesCanvas"></canvas>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="screen" id="scr-settings">
+          <div class="topbar"><div><h2>Settings</h2><div class="sub">the two numbers everything else is built from</div></div></div>
+          <div class="settings-grid">
+            <div class="field"><label>Today's starting balance</label><input type="number" id="setBalance" step="0.01"></div>
+            <div class="field"><label>Next payday</label><input type="date" id="setPayday"></div>
+            <button class="btn primary" id="saveSettings" style="align-self:flex-start;">Save</button>
+            <div class="danger-zone">
+              <button class="btn danger" id="resetData">Clear all data on this device</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <nav class="monthrail" id="monthRail">
+        <div class="mhome" title="Index" data-nav="today"><svg viewBox="0 0 24 24"><path d="M4 11l8-6.5 8 6.5M6 9.5V19h12V9.5"/></svg></div>
+      </nav>
+
+      <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modalBox"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- boot / fit ---------- */
+const outer = document.getElementById('frameOuter');
+const currentScale = 1; // layout is now fluid/responsive — no artificial device-canvas scaling
+function onOuterResize(){
+  if(document.getElementById('scr-notes').classList.contains('on')) sizeNotesCanvas();
+}
+new ResizeObserver(onOuterResize).observe(outer);
+
+/* ---------- mobile nav drawer ---------- */
+const railPanel = document.getElementById('railNavPanel');
+const drawerBackdrop = document.getElementById('drawerBackdrop');
+function openDrawer(){ railPanel.classList.add('open'); drawerBackdrop.classList.add('on'); }
+function closeDrawer(){ railPanel.classList.remove('open'); drawerBackdrop.classList.remove('on'); }
+document.getElementById('drawerToggle').addEventListener('click', openDrawer);
+document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+drawerBackdrop.addEventListener('click', closeDrawer);
+
+/* ---------- state ---------- */
+const KEY = 'lamemoire-budget-v1';
+const DOW = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
+const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const MONTHFULL = ["January","February","March","April","May","June","July","August",
+  "September","October","November","December"];
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function dkey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function todayDate(){ return new Date(); }
+function fmt(n){ return '$' + (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
+function firstDowMon(y,m){ const j = new Date(y,m,1).getDay(); return (j+6)%7; }
+
+/* which day the "Today" screen is currently showing — usually real today,
+   but a calendar-day click can point it at any date, like a daily log page */
+let VIEWDATE = dkey(todayDate());
+
+function seed(){
+  const t = todayDate();
+  const payday = new Date(t); payday.setDate(payday.getDate()+18);
+  return {
+    settings: { startingBalance: 509.20, startingBalanceDate: dkey(t), payday: dkey(payday), theme: 'dark' },
+    spends: [],
+    bills: [
+      {id:uid(), name:'Rent', day:1, amount:1200},
+      {id:uid(), name:'Phone', day:4, amount:55},
+      {id:uid(), name:'Internet', day:24, amount:70},
+    ],
+    billPayments: [],
+    income: [
+      {id:uid(), source:'Paycheck — Work', date: dkey(new Date(t.getFullYear(),t.getMonth(),1)), amount:2500},
+    ],
+    goals: [
+      {id:uid(), name:'Vacation fund — Japan, next spring', target:4460, saved:1205, monthly:85, deadline:'2027-02-01',
+        note:"Autotransfer on payday — the amount is already decided, so there's nothing to negotiate with yourself in the moment."},
+      {id:uid(), name:'Just-in-case fund', target:1000, saved:780, monthly:50, deadline:'',
+        note:"Un-dated on purpose — this one's finished when it's finished, not by a date on a calendar."},
+    ],
+    debts: [
+      {id:uid(), name:'Visa', apr:21.9, balance:3900, original:5000, minPayment:191,
+        note:'Highest rate first — every extra dollar here does more work than the same dollar anywhere else.'},
+      {id:uid(), name:'Student line of credit', apr:6.5, balance:8000, original:14300, minPayment:130,
+        note:"Waits its turn — nothing extra goes here until higher-rate debts are clear."},
+    ],
+    envelopes: [
+      {id:uid(), name:'Groceries', target:400, saved:210},
+      {id:uid(), name:'Fun money', target:100, saved:65},
+      {id:uid(), name:'Gifts', target:150, saved:40},
+    ],
+    milestones: [
+      {id:uid(), text:'First $100 saved', done:true, doneDate:dkey(t)},
+      {id:uid(), text:'One bill paid off in full', done:false},
+      {id:uid(), text:'One month, no overdraft', done:false},
+    ],
+    checklist: {},
+    debtSort: 'rate',
+    view: { year: t.getFullYear(), month: t.getMonth() },
+    notesImage: '',
+    brainDump: '',
+    debtPayments: [],
+    savingsMoves: [],
+  };
+}
+
+let S = null;
+function load(){
+  try{ const raw = localStorage.getItem(KEY); if(raw) S = JSON.parse(raw); }catch(e){}
+  if(!S) S = seed();
+  if(!S.view) S.view = { year: todayDate().getFullYear(), month: todayDate().getMonth() };
+  if(S.notesImage===undefined) S.notesImage = '';
+  if(!S.settings.theme) S.settings.theme = 'dark';
+  if(S.brainDump===undefined) S.brainDump = '';
+  if(!S.debtPayments) S.debtPayments = [];
+  if(!S.savingsMoves) S.savingsMoves = [];
+  if(!S.billPayments) S.billPayments = [];
+}
+function billPaidForYm(billId, ym){ return S.billPayments.some(p=>p.billId===billId && p.ym===ym); }
+function setBillPaid(billId, ym, val){
+  S.billPayments = S.billPayments.filter(p=>!(p.billId===billId && p.ym===ym));
+  if(val) S.billPayments.push({id:uid(), billId, ym, paidDate:dkey(todayDate())});
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+/* ---------- derived ---------- */
+function billNextDue(bill, fromDate){
+  const y = fromDate.getFullYear(), m = fromDate.getMonth();
+  let due = new Date(y, m, Math.min(bill.day, daysInMonth(y,m)));
+  if(due < new Date(fromDate.getFullYear(),fromDate.getMonth(),fromDate.getDate())){
+    const nm = m===11?0:m+1, ny = m===11?y+1:y;
+    due = new Date(ny, nm, Math.min(bill.day, daysInMonth(ny,nm)));
+  }
+  return due;
+}
+function unpaidBeforePayday(){
+  const t = todayDate(); const pd = new Date(S.settings.payday+'T00:00:00');
+  return S.bills.filter(b=>{
+    const due = billNextDue(b,t);
+    return due <= pd && !billPaidForYm(b.id, monthKey(due));
+  }).reduce((s,b)=>s+Number(b.amount||0),0);
+}
+function spendsSinceReset(){
+  const since = S.settings.startingBalanceDate;
+  return S.spends.filter(s=>s.date >= since).reduce((s,x)=>s+Number(x.amount||0),0);
+}
+function safeToSpend(){
+  return S.settings.startingBalance - unpaidBeforePayday() - spendsSinceReset();
+}
+function spendsOn(k){
+  return S.spends.filter(s=>s.date===k).sort((a,b)=> (b.ts||0) - (a.ts||0));
+}
+function viewDateSpends(){ return spendsOn(VIEWDATE); }
+
+/* ---------- modal ---------- */
+const overlay = document.getElementById('modalOverlay');
+const modalBox = document.getElementById('modalBox');
+function openModal(title, fields, onSubmit, submitLabel){
+  modalBox.innerHTML = '';
+  const h = document.createElement('h3'); h.textContent = title; modalBox.appendChild(h);
+  const inputs = {};
+  fields.forEach(f=>{
+    const wrap = document.createElement('div'); wrap.className='field';
+    const lab = document.createElement('label'); lab.textContent = f.label; wrap.appendChild(lab);
+    let inp;
+    if(f.type==='select'){
+      inp = document.createElement('select');
+      (f.options||[]).forEach(([val,label])=>{
+        const o = document.createElement('option'); o.value=val; o.textContent=label;
+        if(val===f.value) o.selected = true;
+        inp.appendChild(o);
+      });
+    } else {
+      inp = document.createElement('input');
+      inp.type = f.type || 'text'; if(f.step) inp.step = f.step; if(f.value!==undefined) inp.value = f.value;
+      if(f.placeholder) inp.placeholder = f.placeholder;
+    }
+    wrap.appendChild(inp); modalBox.appendChild(wrap); inputs[f.key] = inp;
+  });
+  const actions = document.createElement('div'); actions.className='modal-actions';
+  const cancel = document.createElement('button'); cancel.className='btn'; cancel.textContent='Cancel';
+  cancel.addEventListener('click', closeModal);
+  const ok = document.createElement('button'); ok.className='btn primary'; ok.textContent = submitLabel || 'Save';
+  ok.addEventListener('click', ()=>{
+    const vals = {}; fields.forEach(f=> vals[f.key] = inputs[f.key].value);
+    onSubmit(vals); closeModal();
+  });
+  actions.appendChild(cancel); actions.appendChild(ok); modalBox.appendChild(actions);
+  overlay.classList.add('on');
+  const first = modalBox.querySelector('input'); if(first) first.focus();
+}
+function closeModal(){ overlay.classList.remove('on'); }
+overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
+
+/* ---------- nav ---------- */
+function switchScreen(name){
+  document.querySelectorAll('.rail-item[data-screen]').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('on'));
+  const item = document.querySelector('.rail-item[data-screen="'+name+'"]');
+  if(item) item.classList.add('on');
+  document.getElementById('scr-'+name).classList.add('on');
+  if(name==='month'){ renderMonth(); }
+  else if(name==='moneyin'){ renderMoneyIn(); syncMonthRail(); }
+  else if(name==='bills'){ renderBills(); syncMonthRail(); }
+  else { document.querySelectorAll('.mtab').forEach((el,i)=> el.classList.toggle('on', i===todayDate().getMonth())); }
+  if(name==='settings') renderSettings();
+  if(name==='notes') sizeNotesCanvas();
+}
+function syncMonthRail(){
+  document.querySelectorAll('.mtab').forEach((el,i)=> el.classList.toggle('on', i===S.view.month));
+}
+document.querySelectorAll('.rail-item[data-screen]').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    if(el.dataset.screen==='today'){ VIEWDATE = dkey(todayDate()); renderToday(); }
+    switchScreen(el.dataset.screen);
+    closeDrawer();
+  });
+});
+document.querySelectorAll('[data-nav]').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    if(el.dataset.nav==='today'){ VIEWDATE = dkey(todayDate()); renderToday(); }
+    switchScreen(el.dataset.nav);
+  });
+});
+
+/* ---------- render: today / day log ---------- */
+function renderToday(){
+  const t = todayDate();
+  const tk = dkey(t);
+  const isToday = VIEWDATE === tk;
+  const vd = new Date(VIEWDATE+'T00:00:00');
+
+  document.getElementById('backToTodayFromDay').style.display = isToday ? 'none' : '';
+  if(isToday){
+    const h = t.getHours();
+    document.getElementById('todayGreeting').textContent = h<12?'Good morning':(h<18?'Good afternoon':'Good evening');
+    document.getElementById('todayDate').textContent = t.toLocaleDateString('en-US',{weekday:'long', day:'numeric', month:'long'});
+  } else {
+    document.getElementById('todayGreeting').textContent = vd.toLocaleDateString('en-US',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+    document.getElementById('todayDate').textContent = 'daily log';
+  }
+
+  document.getElementById('heroCard').style.display = isToday ? '' : 'none';
+  document.getElementById('checklistCard').style.display = isToday ? '' : 'none';
+  document.getElementById('dayNoteCard').style.display = isToday ? 'none' : '';
+  document.getElementById('todayExtras').style.display = isToday ? 'flex' : 'none';
+  if(!isToday){ document.getElementById('rightNowCard').style.display='none'; document.getElementById('rightNowClearCard').style.display='none'; }
+
+  if(isToday){
+    const safe = safeToSpend();
+    document.getElementById('safeAmt').textContent = safe.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const pd = new Date(S.settings.payday+'T00:00:00');
+    document.getElementById('heroSub').innerHTML =
+      `of today's starting <b>${fmt(S.settings.startingBalance)}</b> − <b>${fmt(unpaidBeforePayday())}</b> owed before payday, has to last until <b>${pd.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})}</b>`;
+
+    const auto1 = spendsOn(tk).length>0;
+    const auto2 = S.settings.startingBalanceDate === tk;
+    const c3 = !!(S.checklist[tk] && S.checklist[tk].c);
+    const cc = document.getElementById('checklistCard');
+    cc.innerHTML = `<div class="card-label">Three small things</div>` +
+      row('Spending logged for today', auto1, true) +
+      row('Checking balance is set', auto2, true) +
+      row(`Stay inside today's share — ${fmt(safe)}`, c3, false, 'c');
+    function row(label, done, locked, key){
+      return `<div class="chk-row ${done?'done':''}">
+        <button class="chk-circ ${done?'done':''} ${locked?'locked':''}" ${key?`data-toggle="${key}"`:''} ${locked?'disabled':''}>
+          ${done?'<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>':''}</button>
+        <span>${label}</span>${locked?'<span class="chk-auto">auto</span>':''}</div>`;
+    }
+    cc.querySelectorAll('[data-toggle]').forEach(b=> b.addEventListener('click', ()=>{
+      const k = b.dataset.toggle;
+      S.checklist[tk] = S.checklist[tk] || {};
+      S.checklist[tk][k] = !S.checklist[tk][k];
+      save(); renderToday();
+    }));
+
+    renderRightNow(auto1, auto2, c3, safe);
+    renderComingUp();
+    renderRunToPayday(safe);
+    renderMonthSoFar();
+    renderDayStrip();
+    renderAutoMilestones();
+  }
+
+  document.getElementById('logLabel').textContent = isToday ? 'What you logged today' : 'What was logged on this day';
+  document.getElementById('logTotalLbl').textContent = isToday ? 'logged today' : 'logged this day';
+
+  const chipDefs = [['Coffee',4,'living'],['Lunch',12,'living'],['Bus',6,'living'],['Groceries',35,'living']];
+  const qc = document.getElementById('quickChips');
+  qc.innerHTML = chipDefs.map(([n,a])=>`<button class="chip" data-name="${n}" data-amt="${a}">${n} · $${a}</button>`).join('')
+    + `<button class="chip dashed" id="customSpend">Custom</button>`;
+  qc.querySelectorAll('[data-name]').forEach(b=> b.addEventListener('click', ()=>{
+    const def = chipDefs.find(d=>d[0]===b.dataset.name);
+    logSpend(b.dataset.name, Number(b.dataset.amt), def ? def[2] : 'living');
+  }));
+  document.getElementById('customSpend').addEventListener('click', ()=>{
+    openModal('Log a spend', [
+      {key:'name', label:'What was it', type:'text', placeholder:'e.g. Parking'},
+      {key:'amount', label:'Amount', type:'number', step:'0.01'},
+      {key:'category', label:'Kind of spending', type:'select', value:'living', options:CATEGORY_OPTIONS},
+    ], v=>{ if(v.name && v.amount) logSpend(v.name, Number(v.amount), v.category); }, 'Log it');
+  });
+
+  const list = viewDateSpends();
+  const ll = document.getElementById('logList');
+  ll.innerHTML = list.length ? list.map(s=>`
+    <div class="logrow"><span class="logdot"></span><span class="nm">${esc(s.name)}</span>
+      <span class="tm">${s.time}</span><span class="amt">${fmt(s.amount)}</span>
+      <button class="rowdel" data-id="${s.id}" title="Remove"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>`).join('')
+    : `<div class="empty">nothing logged yet — anything you add lands here</div>`;
+  ll.querySelectorAll('[data-id]').forEach(b=> b.addEventListener('click', ()=>{
+    S.spends = S.spends.filter(s=>s.id!==b.dataset.id); save(); renderToday();
+  }));
+  document.getElementById('logTotal').textContent = fmt(list.reduce((s,x)=>s+Number(x.amount),0));
+}
+const CATEGORY_OPTIONS = [['living','Living & food'],['fun','Fun & friends'],['other','Other']];
+function logSpend(name, amount, category){
+  const now = todayDate();
+  S.spends.push({id:uid(), name, amount, category:category||'living', date:VIEWDATE, ts:now.getTime(),
+    time:now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})});
+  save(); renderToday();
+}
+document.getElementById('backToTodayFromDay').addEventListener('click', ()=>{
+  VIEWDATE = dkey(todayDate()); renderToday();
+});
+document.getElementById('btnLogSpend').addEventListener('click', ()=>{
+  openModal('Log a spend', [
+    {key:'name', label:'What was it', type:'text', placeholder:'e.g. Parking'},
+    {key:'amount', label:'Amount', type:'number', step:'0.01'},
+    {key:'category', label:'Kind of spending', type:'select', value:'living', options:CATEGORY_OPTIONS},
+  ], v=>{ if(v.name && v.amount) logSpend(v.name, Number(v.amount), v.category); }, 'Log it');
+});
+
+/* ---------- today: right now / brain dump / coming up / payday / month-so-far / day strip / auto milestones ---------- */
+function renderRightNow(auto1, auto2, c3, safe){
+  const t = todayDate();
+  let item = null;
+  const dueBill = S.bills.map(b=>({b, due:billNextDue(b,t)})).filter(x=> !billPaidForYm(x.b.id, monthKey(x.due)))
+    .sort((a,b)=> a.due-b.due).map(x=>x.b).find(b=> billNextDue(b,t) <= t);
+  if(dueBill) item = {type:'bill', id:dueBill.id, ym:monthKey(billNextDue(dueBill,t)), title:'Mark '+dueBill.name+' paid', time:'10 sec'};
+  else if(!auto1) item = {type:'logspend', title:'Log anything you spent today', time:'30 sec'};
+  else if(!auto2) item = {type:'balance', title:'Checking balance is set', time:'1 min'};
+  else if(!c3) item = {type:'stayshare', title:"Stay inside today's share — "+fmt(safe), time:''};
+
+  document.getElementById('rightNowCard').style.display = item ? '' : 'none';
+  document.getElementById('rightNowClearCard').style.display = item ? 'none' : '';
+  if(item){
+    document.getElementById('rnTitle').textContent = item.title;
+    document.getElementById('rnTime').textContent = item.time;
+    document.getElementById('rnDone').onclick = ()=> doRightNowAction(item);
+  }
+}
+function doRightNowAction(item){
+  if(item.type==='bill'){
+    setBillPaid(item.id, item.ym, true); save(); renderBills(); renderToday();
+  } else if(item.type==='logspend'){
+    openModal('Log a spend', [
+      {key:'name', label:'What was it', type:'text', placeholder:'e.g. Parking'},
+      {key:'amount', label:'Amount', type:'number', step:'0.01'},
+      {key:'category', label:'Kind of spending', type:'select', value:'living', options:CATEGORY_OPTIONS},
+    ], v=>{ if(v.name && v.amount) logSpend(v.name, Number(v.amount), v.category); }, 'Log it');
+  } else if(item.type==='balance'){
+    openModal('Set today\'s balance', [
+      {key:'balance', label:"Today's starting balance", type:'number', step:'0.01', value:S.settings.startingBalance},
+    ], v=>{ if(v.balance!==''){ S.settings.startingBalance = Number(v.balance); S.settings.startingBalanceDate = dkey(todayDate()); save(); renderToday(); } }, 'Save');
+  } else if(item.type==='stayshare'){
+    const tk = dkey(todayDate()); S.checklist[tk] = S.checklist[tk] || {}; S.checklist[tk].c = true;
+    save(); renderToday();
+  }
+}
+
+function renderComingUp(){
+  const t = todayDate();
+  const upcoming = S.bills.map(b=> ({b, due: billNextDue(b, t)})).sort((a,b)=> a.due-b.due).slice(0,4);
+  const el = document.getElementById('comingUpList');
+  el.innerHTML = upcoming.length ? upcoming.map(({b,due})=>`
+    <div class="list-row"><span class="nm">${esc(b.name)}</span>
+      <span class="dt">${due.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})}</span>
+      <span class="amt">${fmt(b.amount)}</span></div>`).join('')
+    : `<div class="empty">no bills on file yet</div>`;
+}
+
+function renderRunToPayday(safe){
+  const t = todayDate();
+  const pd = new Date(S.settings.payday+'T00:00:00');
+  const startD = new Date(S.settings.startingBalanceDate+'T00:00:00');
+  const daysToPayday = Math.round((pd - t)/86400000);
+  document.getElementById('rpDays').textContent = daysToPayday>0 ? daysToPayday+' days left' : (daysToPayday===0?'Payday is today':'Payday has passed');
+  const span = Math.max(1, (pd - startD)/86400000);
+  const done = Math.min(1, Math.max(0, (t - startD)/86400000));
+  document.getElementById('rpBar').style.width = (done*100).toFixed(0)+'%';
+  document.getElementById('rpLeft').textContent = fmt(Math.max(0,safe));
+  document.getElementById('rpPerDay').textContent = fmt(daysToPayday>0 ? safe/daysToPayday : safe);
+  document.getElementById('rpLogged').textContent = fmt(spendsSinceReset());
+}
+
+function monthKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1); }
+function computeMonthRecap(ym){
+  const cameIn = S.income.filter(i=>i.date.startsWith(ym)).reduce((s,i)=>s+Number(i.amount),0);
+  const billsOut = S.bills.filter(b=>billPaidForYm(b.id, ym)).reduce((s,b)=>s+Number(b.amount),0);
+  const byCat = {living:0, fun:0, other:0};
+  S.spends.filter(sp=>sp.date.startsWith(ym)).forEach(sp=>{ byCat[sp.category||'living'] = (byCat[sp.category||'living']||0) + Number(sp.amount); });
+  const toDebt = S.debtPayments.filter(p=>p.date.startsWith(ym)).reduce((s,p)=>s+Number(p.amount),0);
+  const toSavings = S.savingsMoves.filter(p=>p.date.startsWith(ym)).reduce((s,p)=>s+Number(p.amount),0);
+  const wentOut = billsOut + byCat.living + byCat.fun + byCat.other + toDebt + toSavings;
+  const kept = cameIn - wentOut;
+  const segs = [
+    ['Bills & rent', billsOut, 'var(--tag-rent)'],
+    ['Living & food', byCat.living, 'var(--m3)'],
+    ['Fun & friends', byCat.fun, 'var(--m8)'],
+    ['Other', byCat.other, 'var(--m10)'],
+    ['To debt', toDebt, 'var(--accent)'],
+    ['To savings', toSavings, 'var(--positive)'],
+  ];
+  return {cameIn, billsOut, byCat, toDebt, toSavings, wentOut, kept, segs};
+}
+function svgBarChart(items, height){
+  height = height || 190;
+  const width = 640, padTop = 26, padBottom = 30, padSide = 14;
+  const chartH = height - padTop - padBottom;
+  const max = Math.max(1, ...items.map(i=>i.value));
+  const n = items.length || 1;
+  const gap = 14;
+  const barW = (width - padSide*2 - gap*(n-1)) / n;
+  const bars = items.map((it,idx)=>{
+    const h = it.value>0 ? Math.max(3, (it.value/max)*chartH) : 1;
+    const x = padSide + idx*(barW+gap);
+    const y = padTop + (chartH - h);
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="5" fill="${it.color}"/>
+      <text x="${(x+barW/2).toFixed(1)}" y="${(y-8).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="700" font-family="DM Sans, sans-serif" fill="var(--text)">${'$'+Math.round(it.value).toLocaleString()}</text>
+      <text x="${(x+barW/2).toFixed(1)}" y="${height-10}" text-anchor="middle" font-size="12" font-family="Open Sans, sans-serif" fill="var(--text-soft)">${esc(it.label)}</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">
+    <line x1="${padSide}" y1="${(padTop+chartH).toFixed(1)}" x2="${width-padSide}" y2="${(padTop+chartH).toFixed(1)}" stroke="var(--border)" stroke-width="1"/>
+    ${bars}
+  </svg>`;
+}
+function renderMonthSoFar(){
+  const ym = monthKey(todayDate());
+  const r = computeMonthRecap(ym);
+  document.getElementById('msfIn').textContent = fmt(r.cameIn);
+  document.getElementById('msfOut').textContent = fmt(r.wentOut);
+  document.getElementById('msfKept').textContent = fmt(r.kept);
+  const segs = r.segs.filter(s=>s[1]>0);
+  if(r.kept>0) segs.push(['Left over', r.kept, 'var(--surface-raised)']);
+  const total = Math.max(r.cameIn, r.wentOut, 1);
+  document.getElementById('msfBar').innerHTML = segs.length
+    ? segs.map(([,v,c])=>`<i style="width:${(v/total*100).toFixed(1)}%;background:${c}"></i>`).join('')
+    : `<i style="width:100%;background:var(--surface-raised)"></i>`;
+  document.getElementById('msfLegend').innerHTML = segs.length
+    ? segs.map(([l,v,c])=>`<span class="li"><i style="background:${c}"></i>${l} <b>${fmt(v)}</b></span>`).join('')
+    : `<span class="li">nothing logged this month yet — the shape appears as you go</span>`;
+}
+
+function renderDayStrip(){
+  const t = todayDate();
+  const year = t.getFullYear(), month = t.getMonth();
+  const days = daysInMonth(year, month);
+  const tk = dkey(t);
+  const totals = {};
+  S.spends.forEach(sp=>{ if(sp.date.startsWith(monthKey(t))) totals[sp.date] = (totals[sp.date]||0) + Number(sp.amount); });
+  const max = Math.max(1, ...Object.values(totals));
+  const el = document.getElementById('dayStrip');
+  el.innerHTML = '';
+  for(let d=1; d<=days; d++){
+    const key = year+'-'+pad(month+1)+'-'+pad(d);
+    const v = totals[key]||0;
+    const h = v>0 ? Math.max(14, Math.round(v/max*100)) : 4;
+    const cell = document.createElement('div');
+    cell.className = 'ds-day' + (v>0?' has':'') + (key===tk?' today':'');
+    cell.title = key + (v>0 ? ' — '+fmt(v) : '');
+    cell.innerHTML = `<i style="height:${h}%"></i>`;
+    el.appendChild(cell);
+  }
+}
+
+function renderAutoMilestones(){
+  const t = todayDate();
+  const ym = monthKey(t);
+  const billsBeforePayday = S.bills.map(b=>({b, due:billNextDue(b,t)})).filter(x=> x.due <= new Date(S.settings.payday+'T00:00:00'));
+  const allCoveredBeforePayday = billsBeforePayday.length>0 && billsBeforePayday.every(x=> billPaidForYm(x.b.id, monthKey(x.due)));
+  const spendDates = new Set(S.spends.filter(sp=>sp.date.startsWith(ym)).map(sp=>sp.date));
+  let dayWithoutSpend = false;
+  for(let d=1; d<=t.getDate(); d++){ const key = ym+'-'+pad(d); if(!spendDates.has(key)){ dayWithoutSpend = true; break; } }
+  const allBillsPaid = S.bills.length>0 && S.bills.every(b=> billPaidForYm(b.id, ym));
+  const goalReached = S.goals.some(g=> Number(g.saved) >= Number(g.target) && Number(g.target)>0);
+  const items = [
+    ['Every bill covered before payday', allCoveredBeforePayday],
+    ['A day without spending', dayWithoutSpend],
+    ['A month with every bill ticked off', allBillsPaid],
+    ['A goal reached in full', goalReached],
+  ];
+  document.getElementById('autoMilestoneList').innerHTML = items.map(([label,done])=>`
+    <div class="logrow"><span class="chk-circ ${done?'done':''} locked" style="cursor:default;">
+      ${done?'<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>':''}</span>
+      <span class="nm">${label}</span>
+      <span class="status-pill ${done?'on':''}">${done?'reached':'not yet'}</span></div>`).join('');
+}
+
+/* ---------- render: month ---------- */
+const TAGCOLORS = [['var(--tag-rent)','var(--tag-rent-ink)'],['var(--tag-phone)','var(--tag-phone-ink)'],
+  ['var(--tag-payday)','var(--tag-payday-ink)'],['var(--tag-net)','var(--tag-net-ink)']];
+function renderMonth(){
+  const {year, month} = S.view;
+  document.getElementById('monthTitle').textContent = MONTHFULL[month] + ' ' + year;
+  const pd = new Date(S.settings.payday+'T00:00:00');
+  const daysToPayday = Math.round((pd - todayDate())/86400000);
+  document.getElementById('monthSub').textContent = daysToPayday>=0 ? daysToPayday+' days to payday' : 'payday has passed — update it in Settings';
+
+  const body = document.getElementById('calBody');
+  body.innerHTML = '';
+  const nrows = Math.ceil((firstDowMon(year,month)+daysInMonth(year,month))/7);
+  body.style.gridTemplateRows = `repeat(${nrows}, 1fr)`;
+  const tk = dkey(todayDate());
+  for(let i=0;i<firstDowMon(year,month);i++){ const c=document.createElement('div'); c.className='cal-cell blank'; body.appendChild(c); }
+  for(let d=1; d<=daysInMonth(year,month); d++){
+    const thisKey = year+'-'+pad(month+1)+'-'+pad(d);
+    const c = document.createElement('div');
+    c.className = 'cal-cell' + (thisKey===tk ? ' today' : '');
+    c.title = 'Open the daily log for this date';
+    c.addEventListener('click', ()=>{ VIEWDATE = thisKey; renderToday(); switchScreen('today'); });
+    const dd = document.createElement('div'); dd.className='d'; dd.textContent=d; c.appendChild(dd);
+    let ci = 0;
+    S.bills.forEach(b=>{
+      if(b.day===d){ const t=document.createElement('div'); t.className='tag'; t.textContent=b.name;
+        const cellYm = year+'-'+pad(month+1);
+        const [bg,ink] = billPaidForYm(b.id, cellYm) ? ['var(--positive)','var(--positive-ink)'] : TAGCOLORS[0];
+        t.style.background=bg; t.style.color=ink; c.appendChild(t); }
+    });
+    S.income.forEach(inc=>{
+      if(inc.date===thisKey){ const t=document.createElement('div'); t.className='tag'; t.textContent=inc.source.split(' — ')[0];
+        t.style.background=TAGCOLORS[1][0]; t.style.color=TAGCOLORS[1][1]; c.appendChild(t); }
+    });
+    if(thisKey===dkey(pd)){ const t=document.createElement('div'); t.className='tag'; t.textContent='Payday';
+      t.style.background=TAGCOLORS[2][0]; t.style.color=TAGCOLORS[2][1]; c.appendChild(t); }
+    body.appendChild(c);
+  }
+  const perDay = daysToPayday>0 ? (safeToSpend()/daysToPayday) : safeToSpend();
+  document.getElementById('calGuide').innerHTML = `each day from here, about <b>${fmt(Math.max(perDay,0))}</b>/day`;
+  document.getElementById('calTodayNote').textContent = todayDate().toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'}) + ' — today';
+  document.querySelectorAll('.mtab').forEach((el,i)=> el.classList.toggle('on', i===month));
+  renderMonthTimeline();
+  renderMonthRecap();
+}
+function renderMonthTimeline(){
+  const {year, month} = S.view;
+  const ym = year + '-' + pad(month+1);
+  const t = todayDate();
+  document.getElementById('tlMonthName').textContent = MONTHFULL[month] + ' ' + year;
+  const events = [];
+  S.bills.forEach(b=>{
+    if(b.day > daysInMonth(year,month)) return;
+    const dueDate = new Date(year, month, b.day);
+    const paid = billPaidForYm(b.id, ym);
+    const status = paid ? 'paid' : (dueDate <= t ? 'still to pay' : 'set to come');
+    events.push({day:b.day, name:b.name, amount:-Number(b.amount), status});
+  });
+  S.income.filter(i=>i.date.startsWith(ym)).forEach(i=>{
+    const d = new Date(i.date+'T00:00:00');
+    events.push({day:d.getDate(), name:i.source, amount:Number(i.amount), status: d<=t ? 'landed' : 'expected'});
+  });
+  events.sort((a,b)=> a.day-b.day);
+  let running = 0;
+  const el = document.getElementById('tlList');
+  el.innerHTML = events.length ? events.map(e=>{
+    running += e.amount;
+    const dow = new Date(year,month,e.day).toLocaleDateString('en-US',{weekday:'short'});
+    return `<div class="tl-row">
+      <div class="tl-date">${dow}<b>${e.day}</b></div>
+      <div><span class="tl-name">${esc(e.name)}</span><span class="tl-status">${e.status}</span></div>
+      <div class="tl-amt ${e.amount>0?'pos':''}">${e.amount>0?'+':'−'}${fmt(Math.abs(e.amount))}</div>
+      <div class="tl-run">running<b>${fmt(running)}</b></div>
+    </div>`;
+  }).join('') : `<div class="empty">nothing on the books for ${MONTHFULL[month]} yet</div>`;
+}
+function renderMonthRecap(){
+  const {year, month} = S.view;
+  const ym = year + '-' + pad(month+1);
+  const r = computeMonthRecap(ym);
+  document.getElementById('recapMonthName').textContent = MONTHFULL[month] + ' ' + year;
+  document.getElementById('recIn').textContent = fmt(r.cameIn);
+  document.getElementById('recOut').textContent = fmt(r.wentOut);
+  document.getElementById('recKept').textContent = fmt(r.kept);
+  const catItems = r.segs.filter(s=>s[1]>0).map(([label,value,color])=>({label,value,color}));
+  document.getElementById('recapCatChart').innerHTML = catItems.length
+    ? svgBarChart(catItems)
+    : `<div class="empty">nothing logged in ${MONTHFULL[month]} yet</div>`;
+  document.getElementById('recapFlowChart').innerHTML = svgBarChart([
+    {label:'Came in', value:r.cameIn, color:'var(--positive)'},
+    {label:'Went out', value:r.wentOut, color:'var(--accent)'},
+    {label:'Kept', value:Math.max(r.kept,0), color:'var(--m1)'},
+  ]);
+}
+document.getElementById('prevMonth').addEventListener('click', ()=>{
+  S.view.month--; if(S.view.month<0){ S.view.month=11; S.view.year--; } save(); renderMonth();
+});
+document.getElementById('nextMonth').addEventListener('click', ()=>{
+  S.view.month++; if(S.view.month>11){ S.view.month=0; S.view.year++; } save(); renderMonth();
+});
+document.getElementById('backToToday').addEventListener('click', ()=>{
+  const t = todayDate(); S.view = {year:t.getFullYear(), month:t.getMonth()}; save(); switchScreen('today'); switchScreen('month');
+});
+
+/* ---------- render: bills ---------- */
+function renderBills(){
+  const {year, month} = S.view;
+  const ym = year + '-' + pad(month+1);
+  const isCurrent = year===todayDate().getFullYear() && month===todayDate().getMonth();
+  document.getElementById('billsMonthName').textContent = MONTHFULL[month] + ' ' + year;
+  document.getElementById('billsBackToday').style.display = isCurrent ? 'none' : '';
+  const list = [...S.bills].sort((a,b)=>a.day-b.day);
+  const el = document.getElementById('billsList');
+  el.innerHTML = list.length ? list.map(b=>{
+    const paid = billPaidForYm(b.id, ym);
+    return `<div class="list-row"><span class="nm">${esc(b.name)} <button class="rowdel" data-paid="${b.id}" title="${paid?'Mark unpaid':'Mark paid'}" style="color:${paid?'var(--positive)':'var(--text-faint)'}"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button></span>
+      <span class="dt">day ${b.day} of the month</span><span class="amt">${fmt(b.amount)}</span>
+      <button class="rowdel" data-del="${b.id}"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>`;
+  }).join('')
+    : `<div class="empty">no bills yet — add the ones that repeat every month</div>`;
+  el.querySelectorAll('[data-del]').forEach(b=> b.addEventListener('click', ()=>{
+    S.bills=S.bills.filter(x=>x.id!==b.dataset.del);
+    S.billPayments = S.billPayments.filter(p=>p.billId!==b.dataset.del);
+    save(); renderBills(); renderToday();
+  }));
+  el.querySelectorAll('[data-paid]').forEach(b=> b.addEventListener('click', ()=>{
+    setBillPaid(b.dataset.paid, ym, !billPaidForYm(b.dataset.paid, ym));
+    save(); renderBills(); renderToday();
+  }));
+  const unpaidTotal = list.filter(b=>!billPaidForYm(b.id, ym)).reduce((s,b)=>s+Number(b.amount),0);
+  document.getElementById('billsSub').textContent = list.length + (list.length===1?' bill':' bills') + ' · ' + fmt(unpaidTotal) + ' unpaid · ' + MONTHFULL[month] + ' ' + year;
+}
+document.getElementById('addBill').addEventListener('click', ()=>{
+  openModal('Add a bill', [
+    {key:'name', label:'Bill name', type:'text', placeholder:'e.g. Rent'},
+    {key:'day', label:'Due day of month (1–31)', type:'number'},
+    {key:'amount', label:'Amount', type:'number', step:'0.01'},
+  ], v=>{ if(v.name && v.day) S.bills.push({id:uid(), name:v.name, day:Math.min(31,Math.max(1,Number(v.day))), amount:Number(v.amount)||0});
+    save(); renderBills(); renderToday(); }, 'Add bill');
+});
+function shiftBillsMonth(delta){
+  S.view.month += delta;
+  if(S.view.month<0){ S.view.month=11; S.view.year--; }
+  if(S.view.month>11){ S.view.month=0; S.view.year++; }
+  save(); renderBills(); syncMonthRail();
+}
+document.getElementById('billsPrev').addEventListener('click', ()=> shiftBillsMonth(-1));
+document.getElementById('billsNext').addEventListener('click', ()=> shiftBillsMonth(1));
+document.getElementById('billsBackToday').addEventListener('click', ()=>{
+  const t = todayDate(); S.view = {year:t.getFullYear(), month:t.getMonth()};
+  save(); renderBills(); syncMonthRail();
+});
+
+/* ---------- render: money in ---------- */
+function renderMoneyIn(){
+  const isCurrent = S.view.year===todayDate().getFullYear() && S.view.month===todayDate().getMonth();
+  const monthName = MONTHFULL[S.view.month];
+  const ym = S.view.year + '-' + pad(S.view.month+1);
+  document.getElementById('moneyinSub').textContent = `everything that's landed in ${monthName} ${S.view.year}` + (isCurrent ? ' (current month)' : '');
+  document.getElementById('moneyinBackToday').style.display = isCurrent ? 'none' : '';
+  const thisMonth = S.income.filter(i=> i.date.startsWith(ym));
+  const total = thisMonth.reduce((s,i)=>s+Number(i.amount),0);
+  const bySource = {};
+  thisMonth.forEach(i=>{ const key=i.source.split(' — ')[0]; bySource[key]=(bySource[key]||0)+Number(i.amount); });
+  const top = Object.entries(bySource).sort((a,b)=>b[1]-a[1]).slice(0,2);
+  document.getElementById('incomeStats').innerHTML =
+    `<div class="stat pos"><div class="card-label">Total in ${monthName}</div><div class="v">${fmt(total)}</div></div>` +
+    top.map(([k,v])=>`<div class="stat"><div class="card-label">${esc(k)}</div><div class="v">${fmt(v)}</div></div>`).join('');
+  const sorted = [...S.income].sort((a,b)=> b.date.localeCompare(a.date));
+  const el = document.getElementById('incomeList');
+  el.innerHTML = sorted.length ? sorted.map(i=>`
+    <div class="list-row"><span class="nm">${esc(i.source)}</span><span class="dt">${new Date(i.date+'T00:00:00').toLocaleDateString('en-US',{day:'numeric',month:'short'})}</span>
+      <span class="amt pos">+${fmt(i.amount)}</span>
+      <button class="rowdel" data-del="${i.id}"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>`).join('')
+    : `<div class="empty">nothing recorded yet</div>`;
+  el.querySelectorAll('[data-del]').forEach(b=> b.addEventListener('click', ()=>{ S.income=S.income.filter(x=>x.id!==b.dataset.del); save(); renderMoneyIn(); }));
+}
+document.getElementById('addIncome').addEventListener('click', ()=>{
+  openModal('Record money in', [
+    {key:'source', label:'Source', type:'text', placeholder:'e.g. Paycheck — Work'},
+    {key:'date', label:'Date', type:'date', value: dkey(todayDate())},
+    {key:'amount', label:'Amount', type:'number', step:'0.01'},
+  ], v=>{ if(v.source && v.amount) S.income.push({id:uid(), source:v.source, date:v.date||dkey(todayDate()), amount:Number(v.amount)});
+    save(); renderMoneyIn(); }, 'Record it');
+});
+function shiftMoneyInMonth(delta){
+  S.view.month += delta;
+  if(S.view.month<0){ S.view.month=11; S.view.year--; }
+  if(S.view.month>11){ S.view.month=0; S.view.year++; }
+  save(); renderMoneyIn(); syncMonthRail();
+}
+document.getElementById('moneyinPrev').addEventListener('click', ()=> shiftMoneyInMonth(-1));
+document.getElementById('moneyinNext').addEventListener('click', ()=> shiftMoneyInMonth(1));
+document.getElementById('moneyinBackToday').addEventListener('click', ()=>{
+  const t = todayDate(); S.view = {year:t.getFullYear(), month:t.getMonth()};
+  save(); renderMoneyIn(); syncMonthRail();
+});
+
+/* ---------- render: goals ---------- */
+function renderGoals(){
+  document.getElementById('goalsSub').textContent = S.goals.length + ' goal' + (S.goals.length===1?'':'s') + ' · ' +
+    fmt(S.goals.reduce((s,g)=>s+Number(g.saved),0)) + ' put aside so far · as of ' + MONTHFULL[todayDate().getMonth()] + ' ' + todayDate().getFullYear();
+
+  const totalSaved = S.goals.reduce((s,g)=>s+Number(g.saved),0);
+  const totalTarget = S.goals.reduce((s,g)=>s+Number(g.target),0);
+  const overallPct = totalTarget>0 ? Math.min(100, Math.round(totalSaved/totalTarget*100)) : 0;
+  document.getElementById('goalsPutAway').textContent = fmt(totalSaved);
+  document.getElementById('goalsPct').textContent = totalTarget>0
+    ? overallPct+'% of the way there — '+S.goals.length+' goal'+(S.goals.length===1?'':'s')+' · '+fmt(totalTarget)+' in all'
+    : 'no goals with a target yet';
+  document.getElementById('goalsOverallBar').style.width = overallPct+'%';
+  document.getElementById('goalsStillToFind').textContent = fmt(Math.max(0, totalTarget-totalSaved));
+  const deadlines = S.goals.filter(g=>g.deadline).sort((a,b)=> a.deadline.localeCompare(b.deadline));
+  document.getElementById('goalsNearestDate').textContent = deadlines.length
+    ? new Date(deadlines[0].deadline+'T00:00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'}) + ' — ' + deadlines[0].name
+    : 'no dates set';
+
+  const el = document.getElementById('goalsGrid');
+  el.innerHTML = S.goals.length ? S.goals.map(g=>{
+    const pct = g.target>0 ? Math.min(100, Math.round(g.saved/g.target*100)) : 0;
+    const by = g.deadline ? 'by '+new Date(g.deadline+'T00:00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'}) : 'no deadline';
+    const toGo = Math.max(0, g.target-g.saved);
+    return `<div class="gcard">
+      <button class="gcard-del" data-del="${g.id}"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+      <div class="gcard-head"><span class="nm">${esc(g.name)}</span><span class="by">${by}</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="gcard-nums"><span><b>${fmt(g.saved)}</b> saved of ${fmt(g.target)}</span><span>${g.monthly?fmt(g.monthly)+'/month · ':''}${fmt(toGo)} to go</span></div>
+      <button class="addmini" data-add="${g.id}">+ add money</button>
+      ${g.note?`<div class="gcard-note">${esc(g.note)}</div>`:''}
+    </div>`;
+  }).join('') : `<div class="empty">no goals yet — add one to start filling in circles</div>`;
+  el.querySelectorAll('[data-del]').forEach(b=> b.addEventListener('click', ()=>{ S.goals=S.goals.filter(x=>x.id!==b.dataset.del); save(); renderGoals(); }));
+  el.querySelectorAll('[data-add]').forEach(b=> b.addEventListener('click', ()=>{
+    openModal('Add to this goal', [{key:'amount', label:'Amount', type:'number', step:'0.01'}], v=>{
+      const g = S.goals.find(x=>x.id===b.dataset.add);
+      if(g && v.amount){ g.saved = Number(g.saved)+Number(v.amount);
+        S.savingsMoves.push({date:dkey(todayDate()), amount:Number(v.amount)}); }
+      save(); renderGoals(); renderToday(); }, 'Add');
+  }));
+}
+document.getElementById('addGoal').addEventListener('click', ()=>{
+  openModal('Add a goal', [
+    {key:'name', label:'What are you saving for', type:'text'},
+    {key:'target', label:'Target amount', type:'number', step:'0.01'},
+    {key:'saved', label:'Already saved (optional)', type:'number', step:'0.01', value:'0'},
+    {key:'monthly', label:'Planned per month (optional)', type:'number', step:'0.01'},
+    {key:'deadline', label:'Target date (optional)', type:'date'},
+  ], v=>{ if(v.name && v.target) S.goals.push({id:uid(), name:v.name, target:Number(v.target), saved:Number(v.saved)||0,
+      monthly:Number(v.monthly)||0, deadline:v.deadline||'', note:''});
+    save(); renderGoals(); }, 'Add goal');
+});
+
+/* ---------- render: debt ---------- */
+function renderDebt(){
+  document.getElementById('debtSub').textContent = S.debts.length + ' debt' + (S.debts.length===1?'':'s') + ' · ' +
+    fmt(S.debts.reduce((s,d)=>s+Number(d.balance),0)) + ' still owed · as of ' + MONTHFULL[todayDate().getMonth()] + ' ' + todayDate().getFullYear();
+  document.querySelectorAll('.sortbtn').forEach(b=> b.classList.toggle('on', b.dataset.sort===S.debtSort));
+  const sorted = [...S.debts].sort((a,b)=> S.debtSort==='rate' ? b.apr-a.apr : a.balance-b.balance);
+  const el = document.getElementById('debtGrid');
+  el.innerHTML = sorted.length ? sorted.map((d,i)=>{
+    const pct = d.original>0 ? Math.min(100, Math.round((1-d.balance/d.original)*100)) : 0;
+    const rank = i===0 ? 'PAY THIS FIRST' : (i===1 ? 'THEN THIS' : '#'+(i+1)+' IN LINE');
+    return `<div class="gcard debt">
+      <button class="gcard-del" data-del="${d.id}"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+      <div class="order-tag">${rank}${d.apr?' — '+d.apr+'% APR':''}</div>
+      <div class="gcard-head"><span class="nm">${esc(d.name)}</span><span class="by">min ${fmt(d.minPayment)}/mo</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="gcard-nums"><span><b>${fmt(d.balance)}</b> still owed</span><span>${pct}% paid off</span></div>
+      <button class="addmini" data-pay="${d.id}">+ log a payment</button>
+      ${d.note?`<div class="gcard-note">${esc(d.note)}</div>`:''}
+    </div>`;
+  }).join('') : `<div class="empty">no debts logged — add one to start tracking it down to zero</div>`;
+  el.querySelectorAll('[data-del]').forEach(b=> b.addEventListener('click', ()=>{ S.debts=S.debts.filter(x=>x.id!==b.dataset.del); save(); renderDebt(); }));
+  el.querySelectorAll('[data-pay]').forEach(b=> b.addEventListener('click', ()=>{
+    openModal('Log a payment', [{key:'amount', label:'Amount paid', type:'number', step:'0.01'}], v=>{
+      const d = S.debts.find(x=>x.id===b.dataset.pay);
+      if(d && v.amount){ d.balance = Math.max(0, Number(d.balance)-Number(v.amount));
+        S.debtPayments.push({date:dkey(todayDate()), amount:Number(v.amount)}); }
+      save(); renderDebt(); renderToday(); }, 'Log payment');
+  }));
+}
+document.querySelectorAll('.sortbtn').forEach(b=> b.addEventListener('click', ()=>{ S.debtSort=b.dataset.sort; save(); renderDebt(); }));
+document.getElementById('addDebt').addEventListener('click', ()=>{
+  openModal('Add a debt', [
+    {key:'name', label:'Debt name', type:'text', placeholder:'e.g. Visa'},
+    {key:'balance', label:'Current balance', type:'number', step:'0.01'},
+    {key:'original', label:'Original balance (for progress %)', type:'number', step:'0.01'},
+    {key:'apr', label:'Interest rate % (optional)', type:'number', step:'0.1'},
+    {key:'minPayment', label:'Minimum payment / month', type:'number', step:'0.01'},
+  ], v=>{ if(v.name && v.balance) S.debts.push({id:uid(), name:v.name, balance:Number(v.balance),
+      original:Number(v.original)||Number(v.balance), apr:Number(v.apr)||0, minPayment:Number(v.minPayment)||0, note:''});
+    save(); renderDebt(); }, 'Add debt');
+});
+
+/* ---------- render: envelopes ---------- */
+function renderEnvelopes(){
+  const el = document.getElementById('envGrid');
+  el.innerHTML = S.envelopes.length ? S.envelopes.map(e=>{
+    const pct = e.target>0 ? Math.min(100, Math.round(e.saved/e.target*100)) : 0;
+    return `<div class="gcard">
+      <button class="gcard-del" data-del="${e.id}"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+      <div class="gcard-head"><span class="nm">${esc(e.name)}</span><span class="by">target ${fmt(e.target)}</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="gcard-nums"><span><b>${fmt(e.saved)}</b> saved</span><span>${pct}%</span></div>
+      <button class="addmini" data-add="${e.id}">+ add money</button>
+    </div>`;
+  }).join('') : `<div class="empty">no envelopes yet — add one for a category you want to set money aside for</div>`;
+  el.querySelectorAll('[data-del]').forEach(b=> b.addEventListener('click', ()=>{ S.envelopes=S.envelopes.filter(x=>x.id!==b.dataset.del); save(); renderEnvelopes(); }));
+  el.querySelectorAll('[data-add]').forEach(b=> b.addEventListener('click', ()=>{
+    openModal('Add to this envelope', [{key:'amount', label:'Amount', type:'number', step:'0.01'}], v=>{
+      const e = S.envelopes.find(x=>x.id===b.dataset.add);
+      if(e && v.amount){ e.saved = Number(e.saved)+Number(v.amount);
+        S.savingsMoves.push({date:dkey(todayDate()), amount:Number(v.amount)}); }
+      save(); renderEnvelopes(); renderToday(); }, 'Add');
+  }));
+}
+document.getElementById('addEnvelope').addEventListener('click', ()=>{
+  openModal('Add an envelope', [
+    {key:'name', label:'What is it for', type:'text', placeholder:'e.g. Groceries'},
+    {key:'target', label:'Target amount', type:'number', step:'0.01'},
+    {key:'saved', label:'Already saved (optional)', type:'number', step:'0.01', value:'0'},
+  ], v=>{ if(v.name && v.target) S.envelopes.push({id:uid(), name:v.name, target:Number(v.target), saved:Number(v.saved)||0});
+    save(); renderEnvelopes(); }, 'Add envelope');
+});
+
+/* ---------- render: milestones ---------- */
+function renderMilestones(){
+  const el = document.getElementById('milestoneList');
+  el.innerHTML = S.milestones.length ? S.milestones.map(m=>`
+    <div class="logrow"><button class="chk-circ ${m.done?'done':''}" data-tog="${m.id}">
+        ${m.done?'<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>':''}</button>
+      <span class="nm" style="${m.done?'color:var(--text-soft);text-decoration:line-through;text-decoration-color:var(--border);':''}">${esc(m.text)}</span>
+      <span class="tm">${m.done && m.doneDate ? new Date(m.doneDate+'T00:00:00').toLocaleDateString('en-US',{day:'numeric',month:'short'}) : ''}</span>
+      <button class="rowdel" data-del="${m.id}"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>`).join('')
+    : `<div class="empty">nothing here yet — add a milestone worth marking</div>`;
+  el.querySelectorAll('[data-tog]').forEach(b=> b.addEventListener('click', ()=>{
+    const m = S.milestones.find(x=>x.id===b.dataset.tog); m.done=!m.done; m.doneDate = m.done?dkey(todayDate()):null;
+    save(); renderMilestones();
+  }));
+  el.querySelectorAll('[data-del]').forEach(b=> b.addEventListener('click', ()=>{ S.milestones=S.milestones.filter(x=>x.id!==b.dataset.del); save(); renderMilestones(); }));
+}
+document.getElementById('addMilestone').addEventListener('click', ()=>{
+  openModal('Add a milestone', [{key:'text', label:'Worth marking when…', type:'text', placeholder:'e.g. Credit card hits $0'}], v=>{
+    if(v.text) S.milestones.push({id:uid(), text:v.text, done:false}); save(); renderMilestones(); }, 'Add');
+});
+
+/* ---------- settings ---------- */
+function renderSettings(){
+  document.getElementById('setBalance').value = S.settings.startingBalance;
+  document.getElementById('setPayday').value = S.settings.payday;
+}
+document.getElementById('saveSettings').addEventListener('click', ()=>{
+  const bal = Number(document.getElementById('setBalance').value);
+  const pd = document.getElementById('setPayday').value;
+  if(!isNaN(bal)) { S.settings.startingBalance = bal; S.settings.startingBalanceDate = dkey(todayDate()); }
+  if(pd) S.settings.payday = pd;
+  save(); renderToday(); switchScreen('today');
+});
+document.getElementById('resetData').addEventListener('click', ()=>{
+  if(confirm('This clears every bill, goal, debt, envelope and log entry on this device. Continue?')){
+    S = seed(); save(); renderAll(); switchScreen('today');
+  }
+});
+
+/* ---------- notes (freehand canvas) ---------- */
+const notesCanvas = document.getElementById('notesCanvas');
+const notesCtx = notesCanvas.getContext('2d');
+let DRAW_MODE = 'pen';
+let drawing = false, lastX = 0, lastY = 0;
+
+function sizeNotesCanvas(){
+  const wrap = document.getElementById('notesWrap');
+  const r = wrap.getBoundingClientRect();
+  const w = Math.max(200, Math.round(r.width / currentScale));
+  const h = Math.max(200, Math.round(r.height / currentScale));
+  if(notesCanvas.width !== w || notesCanvas.height !== h){
+    notesCanvas.width = w; notesCanvas.height = h;
+    drawSavedNotes();
+  }
+}
+function drawSavedNotes(){
+  notesCtx.clearRect(0,0,notesCanvas.width,notesCanvas.height);
+  if(S.notesImage){
+    const img = new Image();
+    img.onload = ()=> notesCtx.drawImage(img,0,0,notesCanvas.width,notesCanvas.height);
+    img.src = S.notesImage;
+  }
+}
+function toCanvasXY(e){
+  const r = notesCanvas.getBoundingClientRect();
+  return [(e.clientX-r.left)/r.width*notesCanvas.width, (e.clientY-r.top)/r.height*notesCanvas.height];
+}
+function applyStrokeStyle(){
+  if(DRAW_MODE==='eraser'){ notesCtx.globalCompositeOperation='destination-out'; notesCtx.lineWidth=34; }
+  else { notesCtx.globalCompositeOperation='source-over';
+    notesCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#F3EEE7';
+    notesCtx.lineWidth = 4; }
+}
+notesCtx.lineCap='round'; notesCtx.lineJoin='round';
+notesCanvas.addEventListener('pointerdown', e=>{
+  drawing = true; notesCanvas.setPointerCapture(e.pointerId);
+  const [x,y] = toCanvasXY(e); lastX=x; lastY=y;
+  applyStrokeStyle();
+  notesCtx.beginPath(); notesCtx.moveTo(x,y); notesCtx.lineTo(x+0.01,y+0.01); notesCtx.stroke();
+});
+notesCanvas.addEventListener('pointermove', e=>{
+  if(!drawing) return;
+  const [x,y] = toCanvasXY(e);
+  applyStrokeStyle();
+  notesCtx.beginPath(); notesCtx.moveTo(lastX,lastY); notesCtx.lineTo(x,y); notesCtx.stroke();
+  lastX=x; lastY=y;
+});
+function endStroke(){
+  if(!drawing) return;
+  drawing = false;
+  S.notesImage = notesCanvas.toDataURL('image/png');
+  save();
+}
+notesCanvas.addEventListener('pointerup', endStroke);
+notesCanvas.addEventListener('pointercancel', endStroke);
+notesCanvas.addEventListener('pointerleave', endStroke);
+
+document.getElementById('toolPen').addEventListener('click', ()=>{
+  DRAW_MODE='pen';
+  document.getElementById('toolPen').classList.add('on');
+  document.getElementById('toolEraser').classList.remove('on');
+});
+document.getElementById('toolEraser').addEventListener('click', ()=>{
+  DRAW_MODE='eraser';
+  document.getElementById('toolEraser').classList.add('on');
+  document.getElementById('toolPen').classList.remove('on');
+});
+document.getElementById('toolClear').addEventListener('click', ()=>{
+  if(confirm('Clear this notes page?')){
+    notesCtx.clearRect(0,0,notesCanvas.width,notesCanvas.height);
+    S.notesImage=''; save();
+  }
+});
+
+/* ---------- month rail ---------- */
+const monthRail = document.getElementById('monthRail');
+MONTHS.forEach((label, i)=>{
+  const t = document.createElement('div');
+  t.className = 'mtab';
+  t.style.setProperty('--tab-color', `var(--m${i+1})`);
+  t.innerHTML = `<span>${label}</span>`;
+  t.addEventListener('click', ()=>{
+    const onMoneyIn = document.getElementById('scr-moneyin').classList.contains('on');
+    const onBills = document.getElementById('scr-bills').classList.contains('on');
+    const onMonth = document.getElementById('scr-month').classList.contains('on');
+    if(!onMonth && !onMoneyIn && !onBills) S.view.year = todayDate().getFullYear();
+    S.view.month = i;
+    save();
+    if(onMoneyIn){ renderMoneyIn(); syncMonthRail(); }
+    else if(onBills){ renderBills(); syncMonthRail(); }
+    else { switchScreen('month'); }
+  });
+  monthRail.appendChild(t);
+});
+
+/* ---------- utils ---------- */
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------- boot ---------- */
+function renderAll(){
+  renderToday(); renderMonth(); renderBills(); renderMoneyIn(); renderGoals(); renderDebt(); renderEnvelopes(); renderMilestones();
+  document.getElementById('brainDumpText').value = S.brainDump || '';
+}
+let brainDumpTimer = null;
+document.getElementById('brainDumpText').addEventListener('input', e=>{
+  clearTimeout(brainDumpTimer);
+  brainDumpTimer = setTimeout(()=>{ S.brainDump = e.target.value; save(); }, 400);
+});
+/* ---------- theme ---------- */
+function applyTheme(name){
+  if(name && name!=='dark') document.body.setAttribute('data-app-theme', name);
+  else document.body.removeAttribute('data-app-theme');
+  document.querySelectorAll('[data-theme-btn]').forEach(b=> b.classList.toggle('on', b.dataset.themeBtn===name));
+}
+document.querySelectorAll('[data-theme-btn]').forEach(b=>{
+  b.addEventListener('click', ()=>{ S.settings.theme = b.dataset.themeBtn; save(); applyTheme(S.settings.theme); });
+});
+
+try {
+  load(); applyTheme(S.settings.theme); renderAll();
+  document.body.classList.add('js-ran');
+} catch(e) {
+  const card = document.querySelector('#jsFallback .js-fallback-card');
+  if(card) card.insertAdjacentHTML('beforeend', '<p style="color:#7A7168;font-size:12.5px;">(details: '+String(e.message||e).replace(/</g,'&lt;')+')</p>');
+}
+</script>
