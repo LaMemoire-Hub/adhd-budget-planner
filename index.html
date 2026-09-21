@@ -1,3 +1,4 @@
+<meta charset="UTF-8">
 <title>Budget & Planner</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,22 +32,33 @@ body[data-app-theme="silver"]{
   --shadow: 0 16px 40px -18px rgba(35,34,32,.28);
 }
 body[data-app-theme="paper"]{
-  --bg:#EEEBDF; --surface:#F4F1E5; --surface-raised:#E7E2CD; --surface-sunk:#E2DCC5;
-  --border:#D8D1B6; --border-soft:#E2DCC6;
-  --text:#37332A; --text-soft:#83795F; --text-faint:#A79C7E;
-  --accent:#6E6B42; --accent-ink:#F8F6EA; --accent-soft:#DEDBBE;
-  --positive:#C9C89E; --positive-ink:#333018;
-  --danger:#93583C;
-  --shadow: 0 16px 36px -18px rgba(55,51,42,.25);
+  --bg:#F9F7F1; --surface:#FFFFFF; --surface-raised:#F4F2E6; --surface-sunk:#EEEBDA;
+  --border:#DDD8C0; --border-soft:#ECE9D8;
+  --text:#333C28; --text-soft:#65704F; --text-faint:#96A17E;
+  --accent:#5C7F49; --accent-ink:#FFFFFF; --accent-soft:#E4ECD8;
+  --positive:#7FAE68; --positive-ink:#16240E;
+  --danger:#B06E3F;
+  --shadow: 0 16px 36px -18px rgba(51,60,40,.14);
   --serif:"Bitter",Georgia,serif;
 }
-/* Paper theme: one uniform dark-olive identity for nav + month rail instead
+/* Paper/garden theme: one uniform sage identity for nav + month rail instead
    of a color per item — calmer, more "one ink" than the other two themes. */
-body[data-app-theme="paper"] .rail-item{background:color-mix(in srgb, var(--accent) 20%, var(--surface));}
+body[data-app-theme="paper"] .rail-item{background:color-mix(in srgb, var(--accent) 10%, var(--surface));}
 body[data-app-theme="paper"] .rail-item.on{background:var(--accent);color:var(--accent-ink);box-shadow:none;}
-body[data-app-theme="paper"] .mtab{background:color-mix(in srgb, var(--accent) 34%, var(--surface-sunk));}
+body[data-app-theme="paper"] .mtab{background:color-mix(in srgb, var(--accent) 12%, var(--surface));}
 body[data-app-theme="paper"] .mtab.on{background:var(--accent);box-shadow:none;}
 body[data-app-theme="paper"] .mtab.on span{color:var(--accent-ink);}
+/* a few small leaves, garden theme only */
+body[data-app-theme="paper"] .rail-word{position:relative;}
+body[data-app-theme="paper"] .rail-word::after{
+  content:"";position:absolute;top:-6px;right:2px;width:26px;height:26px;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 20c8-1 14-7 15-15-8 1-14 7-15 15z' fill='%235C7F49' opacity='.55'/%3E%3Cpath d='M5.5 18.5C9 15 12 12 17.5 6.5' stroke='%232F4323' stroke-width='.9' fill='none' opacity='.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-size:contain;}
+body[data-app-theme="paper"] .hero{position:relative;overflow:hidden;}
+body[data-app-theme="paper"] .hero::after{
+  content:"";position:absolute;right:6px;bottom:6px;width:86px;height:86px;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 20c8-1 14-7 15-15-8 1-14 7-15 15z' fill='%235C7F49' opacity='.14'/%3E%3Cpath d='M5.5 18.5C9 15 12 12 17.5 6.5' stroke='%232F4323' stroke-width='.7' fill='none' opacity='.12'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-size:contain;transform:rotate(-14deg);}
 *{box-sizing:border-box;}
 .js-fallback{position:fixed;inset:0;z-index:9999;background:#1C1917;color:#F3EEE7;display:flex;
   align-items:center;justify-content:center;padding:28px;font-family:-apple-system,"Open Sans",Helvetica,Arial,sans-serif;}
@@ -57,7 +69,7 @@ body[data-app-theme="paper"] .mtab.on span{color:var(--accent-ink);}
 body.js-ran .js-fallback{display:none;}
 html{overflow-x:hidden;}
 body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Helvetica,Arial,sans-serif;
-  overflow-x:hidden;}
+  overflow-x:clip;}
 .stage{width:100%;}
 .frame-outer{width:100%;}
 .canvas{width:100%;min-height:100vh;background:var(--bg);display:flex;font-family:"Open Sans",sans-serif;}
@@ -98,6 +110,18 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Hel
   border-radius:9px;border:1px solid var(--border);background:var(--surface-raised);color:var(--text-soft);cursor:pointer;}
 .theme-toggle button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
 .rail-foot{margin-top:auto;padding:12px 10px 2px;font-size:14.5px;color:var(--text-faint);border-top:1px solid var(--border-soft);line-height:1.5;}
+.rail-panel{background:var(--surface-raised);border:1px solid var(--border-soft);border-radius:14px;
+  padding:16px 15px;display:flex;flex-direction:column;gap:8px;margin-top:-8px;}
+.rail-panel-label{font-family:"DM Sans",sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--text-faint);}
+.rail-panel-big{font-family:"DM Sans",sans-serif;font-size:25px;font-weight:800;font-variant-numeric:tabular-nums;}
+.rail-panel-big span{font-size:13.5px;font-weight:600;color:var(--text-soft);}
+.rail-panel .bar{height:7px;}
+.rail-panel-row{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;color:var(--text-soft);
+  padding-top:7px;margin-top:5px;border-top:1px solid var(--border-soft);}
+.rail-panel-row:first-of-type{border-top:none;margin-top:0;padding-top:0;}
+.rail-panel-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rail-panel-row b{color:var(--text);font-weight:700;flex:none;}
 
 /* ---- left month rail ---- */
 .monthrail{order:1;width:74px;flex:none;background:var(--surface-sunk);border-right:1px solid var(--border-soft);
@@ -189,6 +213,28 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Hel
 .hero-amt .num{font-family:var(--serif);font-size:86px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
 .hero-sub{font-size:20px;color:var(--text-soft);line-height:1.65;font-variant-numeric:tabular-nums;}
 .hero-sub b{color:var(--text);font-weight:700;}
+.hero-mini{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.hero-mini .hm{flex:1;min-width:118px;background:var(--surface-sunk);border-radius:11px;padding:10px 12px;}
+.hero-mini .hm span{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--text-faint);font-family:"DM Sans",sans-serif;font-weight:700;}
+.hero-mini .hm b{display:block;margin-top:4px;font-size:15.5px;font-weight:800;font-family:"DM Sans",sans-serif;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hero-progress{margin-top:16px;}
+.hero-progress .bar{height:8px;}
+.hero-progress-lbl{margin-top:7px;font-size:13px;color:var(--text-faint);text-align:right;}
+.breakdown-list{display:flex;flex-direction:column;margin-top:4px;}
+.bd-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:10px 0;
+  border-top:1px solid var(--border-soft);font-size:15px;color:var(--text-soft);}
+.bd-row:first-of-type{border-top:none;}
+.bd-row b{color:var(--text);font-variant-numeric:tabular-nums;font-weight:700;flex:none;}
+.bd-row.total{border-top:1.5px solid var(--border);margin-top:2px;padding-top:14px;}
+.bd-row.total span{color:var(--text);font-family:"DM Sans",sans-serif;font-weight:800;font-size:16px;}
+.bd-row.total b{color:var(--accent);font-size:19px;}
+.msf-charts{display:grid;grid-template-columns:1.3fr 1fr;gap:22px;margin-top:18px;align-items:start;}
+.msf-chart-title{font-family:"DM Sans",sans-serif;font-size:13px;font-weight:700;color:var(--text-faint);
+  letter-spacing:.04em;margin-bottom:10px;}
+.msf-donut-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+@media (max-width:760px){ .msf-charts{grid-template-columns:1fr;} }
 .checklist{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;}
 .chk-row{display:flex;align-items:center;gap:13px;padding:13px 2px;border-top:1px solid var(--border-soft);}
 .chk-row:first-of-type{border-top:none;margin-top:6px;}
@@ -307,6 +353,22 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Hel
   border:1px solid var(--border);background:var(--surface-raised);color:var(--text-soft);cursor:pointer;}
 .sortbtn.on{background:var(--text);color:var(--bg);border-color:var(--text);}
 
+/* ---- year table ---- */
+.ytable-wrap{overflow-x:auto;margin-top:10px;}
+.ytable{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;min-width:440px;}
+.ytable th{font-family:"DM Sans",sans-serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-faint);text-align:right;padding:8px 10px;border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap;}
+.ytable td{padding:10px;text-align:right;border-bottom:1px solid var(--border-soft);font-size:15px;white-space:nowrap;}
+.ytable th:first-child,.ytable td:first-child{text-align:left;}
+.ytable td:first-child{font-family:"DM Sans",sans-serif;font-weight:700;}
+.ytable tbody tr{cursor:pointer;}
+.ytable tbody tr:hover td{background:var(--surface-raised);}
+.ytable tr.cur td:first-child::after{content:" · now";font-weight:600;font-size:12px;color:var(--text-faint);}
+.ytable tr.sel td{background:var(--accent-soft);}
+.ytable td.zero{color:var(--text-faint);}
+.ytable td.tot{font-weight:800;}
+.ytable tfoot td{font-family:"DM Sans",sans-serif;font-weight:800;border-top:1.5px solid var(--border);border-bottom:none;padding-top:12px;}
+
 /* ---- settings ---- */
 .settings-grid{display:flex;flex-direction:column;gap:18px;max-width:560px;}
 .field{display:flex;flex-direction:column;gap:8px;}
@@ -328,7 +390,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Hel
 .notes-canvas-wrap canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;}
 
 /* ---- modal ---- */
-.modal-overlay{position:absolute;inset:0;background:rgba(10,8,7,.62);display:none;align-items:center;justify-content:center;z-index:50;}
+.modal-overlay{position:fixed;inset:0;background:rgba(10,8,7,.62);display:none;align-items:center;justify-content:center;z-index:50;}
 .modal-overlay.on{display:flex;}
 .modal{width:420px;max-width:88%;background:var(--surface);border:1px solid var(--border);border-radius:16px;
   padding:26px 26px 22px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow);}
@@ -344,8 +406,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Hel
   .monthrail{display:none;}
   .main{width:100%;}
   .rail{position:fixed;top:0;right:0;bottom:0;height:100vh;width:min(300px,84vw);
-    transform:translateX(100%);transition:transform .25s ease;z-index:30;box-shadow:-12px 0 30px -12px rgba(0,0,0,.4);}
-  .rail.open{transform:translateX(0);}
+    transform:translateX(100%);transition:transform .25s ease,box-shadow .25s ease;z-index:30;}
+  .rail.open{transform:translateX(0);box-shadow:-12px 0 30px -12px rgba(0,0,0,.4);}
   .rail-word{display:flex;align-items:center;justify-content:space-between;}
   .rail-close{display:flex;width:34px;height:34px;flex:none;border-radius:9px;border:1px solid var(--border);
     background:var(--surface-raised);color:var(--text-soft);align-items:center;justify-content:center;cursor:pointer;}
@@ -433,6 +495,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Hel
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Today</div>
           <div class="rail-item" data-screen="month" style="--nav-color:var(--m2)">
             <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>The month</div>
+          <div class="rail-item" data-screen="alltime" style="--nav-color:var(--m8)">
+            <svg viewBox="0 0 24 24"><rect x="4" y="14" width="4" height="7" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="16" y="4" width="4" height="17" rx="1"/></svg>All time</div>
           <div class="rail-item" data-screen="bills" style="--nav-color:var(--m3)">
             <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.5 10h17M8 14h4"/></svg>Bills</div>
           <div class="rail-item" data-screen="moneyin" style="--nav-color:var(--m4)">
@@ -450,6 +514,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Hel
           <div class="rail-item" data-screen="settings" style="--nav-color:var(--m11)">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3H9.8l-.4 2.5a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.5h4.4l.4-2.5a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.6a7 7 0 0 0 .1-1.2z"/></svg>Settings</div>
         </div>
+        <div class="rail-panel" id="railPanel"></div>
         <div class="rail-foot" id="railFoot">your data stays in this browser</div>
       </nav>
 
@@ -485,6 +550,11 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Hel
                 <div class="card-label">Safe to spend today</div>
                 <div class="hero-amt"><span class="cur">$</span><span class="num" id="safeAmt">0.00</span></div>
                 <div class="hero-sub" id="heroSub"></div>
+                <div class="hero-mini" id="heroMini"></div>
+                <div class="hero-progress">
+                  <div class="bar"><i id="heroBar" style="width:0%"></i></div>
+                  <div class="hero-progress-lbl" id="heroProgressLbl"></div>
+                </div>
               </div>
               <div class="card checklist" id="checklistCard"></div>
               <div class="card" id="dayNoteCard" style="display:none;">
@@ -493,6 +563,10 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Hel
               </div>
             </div>
             <div class="today-right">
+              <div class="card" id="breakdownCard">
+                <div class="card-label">How this number is made</div>
+                <div class="breakdown-list" id="breakdownList"></div>
+              </div>
               <div class="card">
                 <div class="card-label">Quick add</div>
                 <div class="chips" id="quickChips"></div>
@@ -535,8 +609,19 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Hel
                 <div class="msf-num"><span>Went out</span><b id="msfOut"></b></div>
                 <div class="msf-num pos"><span>Kept</span><b id="msfKept"></b></div>
               </div>
-              <div class="msf-bar" id="msfBar"></div>
-              <div class="msf-legend" id="msfLegend"></div>
+              <div class="msf-charts">
+                <div class="msf-chart-block">
+                  <div class="msf-chart-title">Spending, day by day</div>
+                  <div id="msfDayChart"></div>
+                </div>
+                <div class="msf-chart-block">
+                  <div class="msf-chart-title">Where it went</div>
+                  <div class="msf-donut-wrap" id="msfDonutWrap">
+                    <div id="msfDonutChart"></div>
+                    <div class="msf-legend" id="msfLegend"></div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="card">
@@ -585,16 +670,47 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Hel
               <div class="msf-num"><span>Went out</span><b id="recOut"></b></div>
               <div class="msf-num pos"><span>Kept</span><b id="recKept"></b></div>
             </div>
+            <div class="msf-charts">
+              <div class="msf-chart-block">
+                <div class="msf-chart-title">Spending, day by day</div>
+                <div id="recapDayChart"></div>
+              </div>
+              <div class="msf-chart-block">
+                <div class="msf-chart-title">Where it went</div>
+                <div class="msf-donut-wrap">
+                  <div id="recapDonutChart"></div>
+                  <div class="msf-legend" id="recapLegend"></div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div class="cardgrid" style="flex:none;min-height:auto;overflow:visible;grid-auto-rows:min-content;">
-            <div class="card">
-              <div class="card-label">Where it went</div>
-              <div id="recapCatChart" style="margin-top:8px;"></div>
+        </section>
+
+        <!-- ALL TIME -->
+        <section class="screen" id="scr-alltime">
+          <div class="topbar">
+            <div><h2>All time</h2><div class="sub">everything you've logged, since <span id="alltimeSince"></span></div></div>
+          </div>
+          <div class="card">
+            <div class="card-label">Total so far</div>
+            <div class="msf-top" style="margin-top:10px;">
+              <div class="msf-num"><span>Came in</span><b id="atIn"></b></div>
+              <div class="msf-num"><span>Went out</span><b id="atOut"></b></div>
+              <div class="msf-num pos"><span>Kept</span><b id="atKept"></b></div>
             </div>
-            <div class="card">
-              <div class="card-label">Came in · went out · kept</div>
-              <div id="recapFlowChart" style="margin-top:8px;"></div>
+            <div class="msf-charts">
+              <div class="msf-chart-block">
+                <div class="msf-chart-title">Spending, month by month</div>
+                <div id="atMonthChart"></div>
+              </div>
+              <div class="msf-chart-block">
+                <div class="msf-chart-title">Where it went</div>
+                <div class="msf-donut-wrap">
+                  <div id="atDonutChart"></div>
+                  <div class="msf-legend" id="atLegend"></div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -628,8 +744,13 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Open Sans",Hel
             </div>
           </div>
           <div class="stat-row" id="incomeStats"></div>
+          <div class="card">
+            <div class="card-label">Year at a glance — <span id="incomeYearLabel"></span></div>
+            <div class="msf-chart-title" style="margin:6px 0 0;font-weight:600;">tap a month to open it below</div>
+            <div class="ytable-wrap"><table class="ytable" id="incomeYearTable"></table></div>
+          </div>
           <div class="card" style="flex:1;min-height:0;display:flex;flex-direction:column;">
-            <div class="card-label">Newest first</div>
+            <div class="card-label" id="incomeListLabel">Newest first</div>
             <div class="list" id="incomeList" style="margin-top:8px;"></div>
           </div>
         </section>
@@ -747,7 +868,7 @@ document.getElementById('drawerClose').addEventListener('click', closeDrawer);
 drawerBackdrop.addEventListener('click', closeDrawer);
 
 /* ---------- state ---------- */
-const KEY = 'lamemoire-budget-v1';
+const KEY = 'lamemoire-budget-v2';
 const DOW = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 const MONTHFULL = ["January","February","March","April","May","June","July","August",
@@ -767,38 +888,19 @@ let VIEWDATE = dkey(todayDate());
 
 function seed(){
   const t = todayDate();
-  const payday = new Date(t); payday.setDate(payday.getDate()+18);
+  const payday = new Date(t); payday.setDate(payday.getDate()+14);
+  const yest = new Date(t); yest.setDate(yest.getDate()-1);
   return {
-    settings: { startingBalance: 509.20, startingBalanceDate: dkey(t), payday: dkey(payday), theme: 'dark' },
+    settings: { startingBalance: 0, startingBalanceDate: dkey(yest), payday: dkey(payday), theme: 'silver' },
     spends: [],
-    bills: [
-      {id:uid(), name:'Rent', day:1, amount:1200},
-      {id:uid(), name:'Phone', day:4, amount:55},
-      {id:uid(), name:'Internet', day:24, amount:70},
-    ],
+    bills: [],
     billPayments: [],
-    income: [
-      {id:uid(), source:'Paycheck — Work', date: dkey(new Date(t.getFullYear(),t.getMonth(),1)), amount:2500},
-    ],
-    goals: [
-      {id:uid(), name:'Vacation fund — Japan, next spring', target:4460, saved:1205, monthly:85, deadline:'2027-02-01',
-        note:"Autotransfer on payday — the amount is already decided, so there's nothing to negotiate with yourself in the moment."},
-      {id:uid(), name:'Just-in-case fund', target:1000, saved:780, monthly:50, deadline:'',
-        note:"Un-dated on purpose — this one's finished when it's finished, not by a date on a calendar."},
-    ],
-    debts: [
-      {id:uid(), name:'Visa', apr:21.9, balance:3900, original:5000, minPayment:191,
-        note:'Highest rate first — every extra dollar here does more work than the same dollar anywhere else.'},
-      {id:uid(), name:'Student line of credit', apr:6.5, balance:8000, original:14300, minPayment:130,
-        note:"Waits its turn — nothing extra goes here until higher-rate debts are clear."},
-    ],
-    envelopes: [
-      {id:uid(), name:'Groceries', target:400, saved:210},
-      {id:uid(), name:'Fun money', target:100, saved:65},
-      {id:uid(), name:'Gifts', target:150, saved:40},
-    ],
+    income: [],
+    goals: [],
+    debts: [],
+    envelopes: [],
     milestones: [
-      {id:uid(), text:'First $100 saved', done:true, doneDate:dkey(t)},
+      {id:uid(), text:'First $100 saved', done:false},
       {id:uid(), text:'One bill paid off in full', done:false},
       {id:uid(), text:'One month, no overdraft', done:false},
     ],
@@ -829,7 +931,7 @@ function setBillPaid(billId, ym, val){
   S.billPayments = S.billPayments.filter(p=>!(p.billId===billId && p.ym===ym));
   if(val) S.billPayments.push({id:uid(), billId, ym, paidDate:dkey(todayDate())});
 }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} renderRailPanel(); }
 
 /* ---------- derived ---------- */
 function billNextDue(bill, fromDate){
@@ -908,11 +1010,85 @@ function switchScreen(name){
   if(item) item.classList.add('on');
   document.getElementById('scr-'+name).classList.add('on');
   if(name==='month'){ renderMonth(); }
+  else if(name==='alltime'){ renderAllTime(); }
   else if(name==='moneyin'){ renderMoneyIn(); syncMonthRail(); }
   else if(name==='bills'){ renderBills(); syncMonthRail(); }
   else { document.querySelectorAll('.mtab').forEach((el,i)=> el.classList.toggle('on', i===todayDate().getMonth())); }
   if(name==='settings') renderSettings();
   if(name==='notes') sizeNotesCanvas();
+  renderRailPanel();
+}
+function renderRailPanel(){
+  const panel = document.getElementById('railPanel');
+  if(!panel || !S) return;
+  const activeEl = document.querySelector('.screen.on');
+  const screen = activeEl ? activeEl.id.replace('scr-','') : 'today';
+  let html = '';
+  if(screen==='goals'){
+    const totalSaved = S.goals.reduce((s,g)=>s+Number(g.saved),0);
+    const totalTarget = S.goals.reduce((s,g)=>s+Number(g.target),0);
+    const pct = totalTarget>0 ? Math.round(totalSaved/totalTarget*100) : 0;
+    html = `<div class="rail-panel-label">Saving up for</div>
+      <div class="rail-panel-big">${fmt(totalSaved)}<span> / ${fmt(totalTarget)}</span></div>
+      <div class="bar"><i style="width:${pct}%;background:var(--positive)"></i></div>` +
+      (S.goals.length ? S.goals.slice(0,3).map(g=>{
+        const gp = g.target>0 ? Math.min(100,Math.round(g.saved/g.target*100)) : 0;
+        return `<div class="rail-panel-row"><span>${esc(g.name)}</span><b>${gp}%</b></div>`;
+      }).join('') : `<div class="rail-panel-row"><span>no goals yet</span></div>`);
+  } else if(screen==='debt'){
+    const totalBal = S.debts.reduce((s,d)=>s+Number(d.balance),0);
+    const totalOrig = S.debts.reduce((s,d)=>s+Number(d.original),0);
+    const pct = totalOrig>0 ? Math.round((1-totalBal/totalOrig)*100) : 0;
+    html = `<div class="rail-panel-label">Paid down so far</div>
+      <div class="rail-panel-big">${pct}%<span> of all debt</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>` +
+      (S.debts.length ? [...S.debts].sort((a,b)=>b.apr-a.apr).slice(0,2).map(d=>
+        `<div class="rail-panel-row"><span>${esc(d.name)}</span><b>${fmt(d.balance)}</b></div>`).join('')
+        : `<div class="rail-panel-row"><span>no debts yet</span></div>`);
+  } else if(screen==='envelopes'){
+    const totalSaved = S.envelopes.reduce((s,e)=>s+Number(e.saved),0);
+    const totalTarget = S.envelopes.reduce((s,e)=>s+Number(e.target),0);
+    const pct = totalTarget>0 ? Math.round(totalSaved/totalTarget*100) : 0;
+    html = `<div class="rail-panel-label">Envelopes filled</div>
+      <div class="rail-panel-big">${fmt(totalSaved)}<span> / ${fmt(totalTarget)}</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>` +
+      (S.envelopes.length ? S.envelopes.slice(0,3).map(e=>{
+        const ep = e.target>0 ? Math.min(100,Math.round(e.saved/e.target*100)) : 0;
+        return `<div class="rail-panel-row"><span>${esc(e.name)}</span><b>${ep}%</b></div>`;
+      }).join('') : `<div class="rail-panel-row"><span>no envelopes yet</span></div>`);
+  } else if(screen==='bills'){
+    const ym = S.view.year+'-'+pad(S.view.month+1);
+    const unpaid = [...S.bills].filter(b=>!billPaidForYm(b.id, ym)).sort((a,b)=>a.day-b.day);
+    const total = unpaid.reduce((s,b)=>s+Number(b.amount),0);
+    html = `<div class="rail-panel-label">Still to pay — ${MONTHFULL[S.view.month]}</div>
+      <div class="rail-panel-big">${fmt(total)}</div>` +
+      (unpaid.length ? unpaid.slice(0,3).map(b=>
+        `<div class="rail-panel-row"><span>${esc(b.name)}</span><b>${fmt(b.amount)}</b></div>`).join('')
+        : `<div class="rail-panel-row"><span>all paid</span></div>`);
+  } else if(screen==='moneyin'){
+    const ym = S.view.year+'-'+pad(S.view.month+1);
+    const total = S.income.filter(i=>i.date.startsWith(ym)).reduce((s,i)=>s+Number(i.amount),0);
+    html = `<div class="rail-panel-label">Money in — ${MONTHFULL[S.view.month]}</div>
+      <div class="rail-panel-big">${fmt(total)}</div>`;
+  } else if(screen==='milestones'){
+    const done = S.milestones.filter(m=>m.done).length;
+    html = `<div class="rail-panel-label">Milestones</div>
+      <div class="rail-panel-big">${done}<span> / ${S.milestones.length}</span></div>`;
+  } else if(screen==='alltime'){
+    const r = computeAllTimeRecap();
+    html = `<div class="rail-panel-label">Kept, all time</div>
+      <div class="rail-panel-big">${fmt(r.kept)}</div>
+      <div class="rail-panel-row"><span>came in</span><b>${fmt(r.cameIn)}</b></div>
+      <div class="rail-panel-row"><span>went out</span><b>${fmt(r.wentOut)}</b></div>`;
+  } else {
+    const safe = safeToSpend();
+    const pd = new Date(S.settings.payday+'T00:00:00');
+    const days = Math.round((pd-todayDate())/86400000);
+    html = `<div class="rail-panel-label">Safe to spend today</div>
+      <div class="rail-panel-big">${fmt(safe)}</div>
+      <div class="rail-panel-row"><span>days to payday</span><b>${days>=0?days:'—'}</b></div>`;
+  }
+  panel.innerHTML = html;
 }
 function syncMonthRail(){
   document.querySelectorAll('.mtab').forEach((el,i)=> el.classList.toggle('on', i===S.view.month));
@@ -949,6 +1125,7 @@ function renderToday(){
   }
 
   document.getElementById('heroCard').style.display = isToday ? '' : 'none';
+  document.getElementById('breakdownCard').style.display = isToday ? '' : 'none';
   document.getElementById('checklistCard').style.display = isToday ? '' : 'none';
   document.getElementById('dayNoteCard').style.display = isToday ? 'none' : '';
   document.getElementById('todayExtras').style.display = isToday ? 'flex' : 'none';
@@ -960,6 +1137,24 @@ function renderToday(){
     const pd = new Date(S.settings.payday+'T00:00:00');
     document.getElementById('heroSub').innerHTML =
       `of today's starting <b>${fmt(S.settings.startingBalance)}</b> − <b>${fmt(unpaidBeforePayday())}</b> owed before payday, has to last until <b>${pd.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})}</b>`;
+
+    const nextBillItem = [...S.bills].map(b=>({b, due:billNextDue(b,t)})).sort((a,b)=>a.due-b.due)[0];
+    const spentToday = spendsOn(tk).reduce((s,x)=>s+Number(x.amount),0);
+    document.getElementById('heroMini').innerHTML = `
+      <div class="hm"><span>Next bill</span><b>${nextBillItem ? esc(nextBillItem.b.name) : '—'}</b></div>
+      <div class="hm"><span>Spent today</span><b>${fmt(spentToday)}</b></div>
+      <div class="hm"><span>Next payday</span><b>${pd.toLocaleDateString('en-US',{day:'numeric',month:'short'})}</b></div>`;
+    const startD2 = new Date(S.settings.startingBalanceDate+'T00:00:00');
+    const periodSpan = Math.max(1, Math.round((pd-startD2)/86400000));
+    const periodDone = Math.min(periodSpan, Math.max(0, Math.round((t-startD2)/86400000)));
+    document.getElementById('heroBar').style.width = Math.min(100, periodDone/periodSpan*100).toFixed(0)+'%';
+    document.getElementById('heroProgressLbl').textContent = `day ${periodDone+1} of ${periodSpan}`;
+
+    document.getElementById('breakdownList').innerHTML = `
+      <div class="bd-row"><span>Today's starting balance</span><b>${fmt(S.settings.startingBalance)}</b></div>
+      <div class="bd-row"><span>Bills still to pay before payday</span><b>−${fmt(unpaidBeforePayday())}</b></div>
+      <div class="bd-row"><span>Logged so far this period</span><b>−${fmt(spendsSinceReset())}</b></div>
+      <div class="bd-row total"><span>Safe to spend</span><b>${fmt(safe)}</b></div>`;
 
     const auto1 = spendsOn(tk).length>0;
     const auto2 = S.settings.startingBalanceDate === tk;
@@ -1122,25 +1317,45 @@ function computeMonthRecap(ym){
   ];
   return {cameIn, billsOut, byCat, toDebt, toSavings, wentOut, kept, segs};
 }
-function svgBarChart(items, height){
-  height = height || 190;
-  const width = 640, padTop = 26, padBottom = 30, padSide = 14;
+function svgDayBars(dailyTotals, year, month, height){
+  height = height || 128;
+  const width = 400, padTop = 8, padBottom = 4, padSide = 2;
   const chartH = height - padTop - padBottom;
-  const max = Math.max(1, ...items.map(i=>i.value));
-  const n = items.length || 1;
-  const gap = 14;
-  const barW = (width - padSide*2 - gap*(n-1)) / n;
-  const bars = items.map((it,idx)=>{
-    const h = it.value>0 ? Math.max(3, (it.value/max)*chartH) : 1;
-    const x = padSide + idx*(barW+gap);
+  const days = dailyTotals.length;
+  const max = Math.max(1, ...dailyTotals);
+  const gap = 2;
+  const barW = (width - padSide*2 - gap*(days-1)) / days;
+  const tKey = dkey(todayDate());
+  let bars = '';
+  for(let i=0;i<days;i++){
+    const v = dailyTotals[i]||0;
+    const h = v>0 ? Math.max(2, (v/max)*chartH) : 1.5;
+    const x = padSide + i*(barW+gap);
     const y = padTop + (chartH - h);
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="5" fill="${it.color}"/>
-      <text x="${(x+barW/2).toFixed(1)}" y="${(y-8).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="700" font-family="DM Sans, sans-serif" fill="var(--text)">${'$'+Math.round(it.value).toLocaleString()}</text>
-      <text x="${(x+barW/2).toFixed(1)}" y="${height-10}" text-anchor="middle" font-size="12" font-family="Open Sans, sans-serif" fill="var(--text-soft)">${esc(it.label)}</text>`;
+    const dayKey = year+'-'+pad(month+1)+'-'+pad(i+1);
+    const fill = dayKey===tKey ? 'var(--accent)' : (dayKey>tKey ? 'var(--border)' : 'var(--m3)');
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(1,barW).toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="${fill}"><title>day ${i+1} — ${fmt(v)}</title></rect>`;
+  }
+  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="none">${bars}</svg>`;
+}
+function svgDonutChart(segments, size){
+  size = size || 128;
+  const stroke = size*0.18;
+  const r = (size-stroke)/2, cx = size/2, cy = size/2;
+  const C = 2*Math.PI*r;
+  const total = segments.reduce((s,x)=>s+x.value,0) || 1;
+  let offset = 0;
+  const circles = segments.filter(s=>s.value>0).map(s=>{
+    const len = (s.value/total)*C;
+    const el = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="${stroke}"
+      stroke-dasharray="${len.toFixed(1)} ${(C-len).toFixed(1)}" stroke-dashoffset="${(-offset).toFixed(1)}"
+      transform="rotate(-90 ${cx} ${cy})"><title>${esc(s.label)} — ${fmt(s.value)}</title></circle>`;
+    offset += len;
+    return el;
   }).join('');
-  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">
-    <line x1="${padSide}" y1="${(padTop+chartH).toFixed(1)}" x2="${width-padSide}" y2="${(padTop+chartH).toFixed(1)}" stroke="var(--border)" stroke-width="1"/>
-    ${bars}
+  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" style="flex:none;">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--surface-sunk)" stroke-width="${stroke}"/>
+    ${circles}
   </svg>`;
 }
 function renderMonthSoFar(){
@@ -1149,14 +1364,17 @@ function renderMonthSoFar(){
   document.getElementById('msfIn').textContent = fmt(r.cameIn);
   document.getElementById('msfOut').textContent = fmt(r.wentOut);
   document.getElementById('msfKept').textContent = fmt(r.kept);
-  const segs = r.segs.filter(s=>s[1]>0);
-  if(r.kept>0) segs.push(['Left over', r.kept, 'var(--surface-raised)']);
-  const total = Math.max(r.cameIn, r.wentOut, 1);
-  document.getElementById('msfBar').innerHTML = segs.length
-    ? segs.map(([,v,c])=>`<i style="width:${(v/total*100).toFixed(1)}%;background:${c}"></i>`).join('')
-    : `<i style="width:100%;background:var(--surface-raised)"></i>`;
+
+  const t = todayDate();
+  const days = daysInMonth(t.getFullYear(), t.getMonth());
+  const totals = new Array(days).fill(0);
+  S.spends.forEach(sp=>{ if(sp.date.startsWith(ym)){ const d = Number(sp.date.slice(8,10)); totals[d-1] += Number(sp.amount); } });
+  document.getElementById('msfDayChart').innerHTML = svgDayBars(totals, t.getFullYear(), t.getMonth());
+
+  const segs = r.segs.filter(s=>s[1]>0).map(([label,value,color])=>({label,value,color}));
+  document.getElementById('msfDonutChart').innerHTML = segs.length ? svgDonutChart(segs) : '';
   document.getElementById('msfLegend').innerHTML = segs.length
-    ? segs.map(([l,v,c])=>`<span class="li"><i style="background:${c}"></i>${l} <b>${fmt(v)}</b></span>`).join('')
+    ? segs.map(s=>`<span class="li"><i style="background:${s.color}"></i>${s.label} <b>${fmt(s.value)}</b></span>`).join('')
     : `<span class="li">nothing logged this month yet — the shape appears as you go</span>`;
 }
 
@@ -1289,16 +1507,107 @@ function renderMonthRecap(){
   document.getElementById('recIn').textContent = fmt(r.cameIn);
   document.getElementById('recOut').textContent = fmt(r.wentOut);
   document.getElementById('recKept').textContent = fmt(r.kept);
-  const catItems = r.segs.filter(s=>s[1]>0).map(([label,value,color])=>({label,value,color}));
-  document.getElementById('recapCatChart').innerHTML = catItems.length
-    ? svgBarChart(catItems)
-    : `<div class="empty">nothing logged in ${MONTHFULL[month]} yet</div>`;
-  document.getElementById('recapFlowChart').innerHTML = svgBarChart([
-    {label:'Came in', value:r.cameIn, color:'var(--positive)'},
-    {label:'Went out', value:r.wentOut, color:'var(--accent)'},
-    {label:'Kept', value:Math.max(r.kept,0), color:'var(--m1)'},
-  ]);
+
+  const days = daysInMonth(year, month);
+  const totals = new Array(days).fill(0);
+  S.spends.forEach(sp=>{ if(sp.date.startsWith(ym)){ const d = Number(sp.date.slice(8,10)); totals[d-1] += Number(sp.amount); } });
+  document.getElementById('recapDayChart').innerHTML = svgDayBars(totals, year, month);
+
+  const segs = r.segs.filter(s=>s[1]>0).map(([label,value,color])=>({label,value,color}));
+  document.getElementById('recapDonutChart').innerHTML = segs.length ? svgDonutChart(segs) : '';
+  document.getElementById('recapLegend').innerHTML = segs.length
+    ? segs.map(s=>`<span class="li"><i style="background:${s.color}"></i>${s.label} <b>${fmt(s.value)}</b></span>`).join('')
+    : `<span class="li">nothing logged in ${MONTHFULL[month]} yet</span>`;
 }
+
+/* ---------- render: all time ---------- */
+function computeAllTimeRecap(){
+  const cameIn = S.income.reduce((s,i)=>s+Number(i.amount),0);
+  const billsOut = S.billPayments.reduce((s,p)=>{ const b=S.bills.find(x=>x.id===p.billId); return s+(b?Number(b.amount):0); },0);
+  const byCat = {living:0, fun:0, other:0};
+  S.spends.forEach(sp=>{ byCat[sp.category||'living'] = (byCat[sp.category||'living']||0) + Number(sp.amount); });
+  const toDebt = S.debtPayments.reduce((s,p)=>s+Number(p.amount),0);
+  const toSavings = S.savingsMoves.reduce((s,p)=>s+Number(p.amount),0);
+  const wentOut = billsOut + byCat.living + byCat.fun + byCat.other + toDebt + toSavings;
+  const kept = cameIn - wentOut;
+  const segs = [
+    ['Bills & rent', billsOut, 'var(--tag-rent)'],
+    ['Living & food', byCat.living, 'var(--m3)'],
+    ['Fun & friends', byCat.fun, 'var(--m8)'],
+    ['Other', byCat.other, 'var(--m10)'],
+    ['To debt', toDebt, 'var(--accent)'],
+    ['To savings', toSavings, 'var(--positive)'],
+  ];
+  return {cameIn, billsOut, byCat, toDebt, toSavings, wentOut, kept, segs};
+}
+function allTimeMonthsList(){
+  const dates = [];
+  S.income.forEach(i=>dates.push(i.date));
+  S.spends.forEach(sp=>dates.push(sp.date));
+  S.billPayments.forEach(p=>dates.push(p.paidDate));
+  S.debtPayments.forEach(p=>dates.push(p.date));
+  S.savingsMoves.forEach(p=>dates.push(p.date));
+  const t = todayDate();
+  const maxYm = monthKey(t);
+  let minYm = maxYm;
+  dates.forEach(d=>{ const ym = d.slice(0,7); if(ym < minYm) minYm = ym; });
+  const [minY, minM] = minYm.split('-').map(Number);
+  const [maxY, maxM] = maxYm.split('-').map(Number);
+  const months = [];
+  let y = minY, m = minM - 1;
+  while(y < maxY || (y === maxY && m <= maxM - 1)){
+    months.push({year:y, month:m});
+    m++; if(m>11){ m=0; y++; }
+  }
+  return months;
+}
+function svgMonthBars(items, height){
+  height = height || 150;
+  const width = 640, padTop = 10, padBottom = 24, padSide = 6;
+  const chartH = height - padTop - padBottom;
+  const max = Math.max(1, ...items.map(i=>i.value));
+  const n = items.length || 1;
+  const gap = Math.max(4, 16 - n);
+  const barW = (width - padSide*2 - gap*(n-1)) / n;
+  let bars = '';
+  items.forEach((it,idx)=>{
+    const h = it.value>0 ? Math.max(2, (it.value/max)*chartH) : 1.5;
+    const x = padSide + idx*(barW+gap);
+    const y = padTop + (chartH - h);
+    const fill = it.isCurrent ? 'var(--accent)' : 'var(--m3)';
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(1,barW).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${fill}"><title>${esc(it.label)} — ${fmt(it.value)}</title></rect>
+      <text x="${(x+barW/2).toFixed(1)}" y="${height-8}" text-anchor="middle" font-size="11" font-family="DM Sans, sans-serif" font-weight="700" fill="var(--text-faint)">${esc(it.label)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">${bars}</svg>`;
+}
+function renderAllTime(){
+  const r = computeAllTimeRecap();
+  document.getElementById('atIn').textContent = fmt(r.cameIn);
+  document.getElementById('atOut').textContent = fmt(r.wentOut);
+  document.getElementById('atKept').textContent = fmt(r.kept);
+
+  const months = allTimeMonthsList();
+  const t = todayDate();
+  document.getElementById('alltimeSince').textContent = months.length
+    ? MONTHFULL[months[0].month] + ' ' + months[0].year
+    : MONTHFULL[t.getMonth()] + ' ' + t.getFullYear();
+
+  const items = months.map(mo=>{
+    const ym = mo.year + '-' + pad(mo.month+1);
+    const mr = computeMonthRecap(ym);
+    return { label: MONTHS[mo.month], value: mr.wentOut, isCurrent: mo.year===t.getFullYear() && mo.month===t.getMonth() };
+  });
+  document.getElementById('atMonthChart').innerHTML = items.length
+    ? svgMonthBars(items)
+    : `<div class="empty">nothing logged yet</div>`;
+
+  const segs = r.segs.filter(s=>s[1]>0).map(([label,value,color])=>({label,value,color}));
+  document.getElementById('atDonutChart').innerHTML = segs.length ? svgDonutChart(segs) : '';
+  document.getElementById('atLegend').innerHTML = segs.length
+    ? segs.map(s=>`<span class="li"><i style="background:${s.color}"></i>${s.label} <b>${fmt(s.value)}</b></span>`).join('')
+    : `<span class="li">nothing logged yet — the shape appears as you go</span>`;
+}
+
 document.getElementById('prevMonth').addEventListener('click', ()=>{
   S.view.month--; if(S.view.month<0){ S.view.month=11; S.view.year--; } save(); renderMonth();
 });
@@ -1359,6 +1668,37 @@ document.getElementById('billsBackToday').addEventListener('click', ()=>{
 });
 
 /* ---------- render: money in ---------- */
+function renderIncomeYearTable(){
+  const yr = S.view.year, yp = String(yr);
+  document.getElementById('incomeYearLabel').textContent = yr;
+  const inYear = S.income.filter(i=> i.date.startsWith(yp+'-'));
+  const srcOf = i => i.source.split(' — ')[0];
+  const totals = {};
+  inYear.forEach(i=>{ totals[srcOf(i)] = (totals[srcOf(i)]||0) + Number(i.amount); });
+  const srcs = Object.entries(totals).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+  const shown = srcs.slice(0,3), hasOther = srcs.length > 3;
+  const cols = hasOther ? [...shown,'Other'] : shown;
+  const sum = (items, c) => items.filter(i=> c==='Other' && hasOther ? !shown.includes(srcOf(i)) : srcOf(i)===c)
+    .reduce((s,i)=>s+Number(i.amount),0);
+  const money = v => v>0 ? fmt(v) : '—';
+  const t = todayDate();
+  let body = '';
+  MONTHFULL.forEach((name,m)=>{
+    const items = inYear.filter(i=> i.date.startsWith(yp+'-'+pad(m+1)));
+    const tot = items.reduce((s,i)=>s+Number(i.amount),0);
+    const cls = (yr===t.getFullYear() && m===t.getMonth() ? 'cur ' : '') + (m===S.view.month ? 'sel' : '');
+    body += `<tr class="${cls}" data-m="${m}"><td>${name}</td>` +
+      cols.map(c=>{ const v = sum(items,c); return `<td class="${v>0?'':'zero'}">${money(v)}</td>`; }).join('') +
+      `<td class="tot ${tot>0?'':'zero'}">${money(tot)}</td></tr>`;
+  });
+  const grand = inYear.reduce((s,i)=>s+Number(i.amount),0);
+  const foot = `<tr><td>Total ${yr}</td>` + cols.map(c=>`<td>${fmt(sum(inYear,c))}</td>`).join('') + `<td>${fmt(grand)}</td></tr>`;
+  const tbl = document.getElementById('incomeYearTable');
+  tbl.innerHTML = `<thead><tr><th>Month</th>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}<th>Total</th></tr></thead><tbody>${body}</tbody><tfoot>${foot}</tfoot>`;
+  tbl.querySelectorAll('tbody tr').forEach(tr=> tr.addEventListener('click', ()=>{
+    S.view.month = Number(tr.dataset.m); save(); renderMoneyIn(); syncMonthRail();
+  }));
+}
 function renderMoneyIn(){
   const isCurrent = S.view.year===todayDate().getFullYear() && S.view.month===todayDate().getMonth();
   const monthName = MONTHFULL[S.view.month];
@@ -1373,13 +1713,15 @@ function renderMoneyIn(){
   document.getElementById('incomeStats').innerHTML =
     `<div class="stat pos"><div class="card-label">Total in ${monthName}</div><div class="v">${fmt(total)}</div></div>` +
     top.map(([k,v])=>`<div class="stat"><div class="card-label">${esc(k)}</div><div class="v">${fmt(v)}</div></div>`).join('');
-  const sorted = [...S.income].sort((a,b)=> b.date.localeCompare(a.date));
+  renderIncomeYearTable();
+  const sorted = [...thisMonth].sort((a,b)=> b.date.localeCompare(a.date));
+  document.getElementById('incomeListLabel').textContent = `Newest first — ${monthName} ${S.view.year}`;
   const el = document.getElementById('incomeList');
   el.innerHTML = sorted.length ? sorted.map(i=>`
     <div class="list-row"><span class="nm">${esc(i.source)}</span><span class="dt">${new Date(i.date+'T00:00:00').toLocaleDateString('en-US',{day:'numeric',month:'short'})}</span>
       <span class="amt pos">+${fmt(i.amount)}</span>
       <button class="rowdel" data-del="${i.id}"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>`).join('')
-    : `<div class="empty">nothing recorded yet</div>`;
+    : `<div class="empty">nothing recorded in ${monthName} yet</div>`;
   el.querySelectorAll('[data-del]').forEach(b=> b.addEventListener('click', ()=>{ S.income=S.income.filter(x=>x.id!==b.dataset.del); save(); renderMoneyIn(); }));
 }
 document.getElementById('addIncome').addEventListener('click', ()=>{
@@ -1600,7 +1942,7 @@ function toCanvasXY(e){
 function applyStrokeStyle(){
   if(DRAW_MODE==='eraser'){ notesCtx.globalCompositeOperation='destination-out'; notesCtx.lineWidth=34; }
   else { notesCtx.globalCompositeOperation='source-over';
-    notesCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#F3EEE7';
+    notesCtx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text').trim() || '#F3EEE7';
     notesCtx.lineWidth = 4; }
 }
 notesCtx.lineCap='round'; notesCtx.lineJoin='round';
@@ -1670,7 +2012,7 @@ function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;
 
 /* ---------- boot ---------- */
 function renderAll(){
-  renderToday(); renderMonth(); renderBills(); renderMoneyIn(); renderGoals(); renderDebt(); renderEnvelopes(); renderMilestones();
+  renderToday(); renderMonth(); renderAllTime(); renderBills(); renderMoneyIn(); renderGoals(); renderDebt(); renderEnvelopes(); renderMilestones();
   document.getElementById('brainDumpText').value = S.brainDump || '';
 }
 let brainDumpTimer = null;
@@ -1689,7 +2031,7 @@ document.querySelectorAll('[data-theme-btn]').forEach(b=>{
 });
 
 try {
-  load(); applyTheme(S.settings.theme); renderAll();
+  load(); applyTheme(S.settings.theme); renderAll(); renderRailPanel();
   document.body.classList.add('js-ran');
 } catch(e) {
   const card = document.querySelector('#jsFallback .js-fallback-card');
